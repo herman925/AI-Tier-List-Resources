@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小赫的AI星辰榜</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Consider adding a futuristic font from Google Fonts, e.g., Orbitron or Russo One -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <h1><span class="star-icon">✨</span> 小赫的AI星辰榜 <span class="star-icon">✨</span></h1>
+        <p>為你的 AI 工具們評定星級！</p>
+    </header>
+
+    <main class="container">
+        <section id="nebula-candidate-area" class="ai-pool">
+            <h2><span class="icon">🌌</span> 星雲候補區 (AI Item Pool)</h2>
+            <div id="ai-items" class="item-grid">
+                <!-- AI items will be loaded here by JavaScript -->
+                <!-- Example structure: -->
+                <!-- <div class="ai-item" draggable="true" data-id="chatgpt4">
+                    <img src="icons/chatgpt.png" alt="ChatGPT-4 Logo">
+                    <span>ChatGPT-4</span>
+                </div> -->
+            </div>
+            <button id="add-custom-ai-btn" class="btn-secondary"><span class="icon">➕</span> 新增自訂 AI</button>
+        </section>
+
+        <section id="star-tier-division" class="tier-list">
+            <h2><span class="icon">🌟</span> 星級劃分 (Tiers)</h2>
+            <div id="tiers-container">
+                <!-- Tiers will be generated here by JavaScript -->
+                <!-- Example structure: -->
+                <!-- <div class="tier-row" data-tier="S">
+                    <div class="tier-label-container">
+                         <span class="tier-label" style="background-color: #ff7979;">S</span>
+                         <input type="text" class="tier-name-input" value="恆星級" style="display:none;">
+                         <button class="edit-tier-btn">✏️</button>
+                         <input type="color" class="tier-color-picker" value="#ff7979" style="display:none;">
+                    </div>
+                    <div class="tier-dropzone"></div>
+                </div> -->
+            </div>
+             <div class="tier-controls">
+                 <button id="add-tier-btn" class="btn-secondary"><span class="icon">➕</span> 新增層級</button>
+                 <button id="remove-tier-btn" class="btn-secondary"><span class="icon">➖</span> 移除層級</button>
+            </div>
+        </section>
+
+        <section id="controls" class="action-buttons">
+             <button id="save-chart-btn" class="btn-primary"><span class="icon">💾</span> 封存星圖 (Save)</button>
+             <button id="share-chart-btn" class="btn-primary"><span class="icon">🔗</span> 分享星軌 (Share)</button>
+             <button id="export-image-btn" class="btn-primary"><span class="icon">🖼️</span> 匯出圖片 (Export)</button>
+             <button id="reset-chart-btn" class="btn-danger"><span class="icon">🔄</span> 重設榜單 (Reset)</button>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 小赫的AI星辰榜. All rights reserved.</p>
+    </footer>
+
+    <!-- Modal for adding custom AI (example) -->
+    <div id="add-ai-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3>新增自訂 AI</h3>
+            <label for="custom-ai-name">名稱:</label>
+            <input type="text" id="custom-ai-name" name="custom-ai-name"><br><br>
+            <label for="custom-ai-icon">圖標 URL (可選):</label>
+            <input type="text" id="custom-ai-icon" name="custom-ai-icon"><br><br>
+            <button id="confirm-add-ai-btn" class="btn-primary">確認新增</button>
+        </div>
+    </div>
+    
+    <!-- Modal for editing AI tool -->
+    <div id="edit-ai-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3>編輯 AI 工具</h3>
+            <input type="hidden" id="edit-ai-id">
+            <label for="edit-ai-name">名稱:</label>
+            <input type="text" id="edit-ai-name" name="edit-ai-name"><br><br>
+            <label for="edit-ai-icon">圖標 URL (可選):</label>
+            <input type="text" id="edit-ai-icon" name="edit-ai-icon"><br><br>
+            <label for="edit-ai-description">描述 (可選):</label>
+            <textarea id="edit-ai-description" name="edit-ai-description" rows="3"></textarea><br><br>
+            <div class="modal-buttons">
+                <button id="confirm-edit-ai-btn" class="btn-primary">保存更改</button>
+                <button id="cancel-edit-ai-btn" class="btn-secondary">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load JavaScript modules -->
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

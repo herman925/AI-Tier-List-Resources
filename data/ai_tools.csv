@@ -1,0 +1,16 @@
+ufeffid,name,icon,description
+chatgpt4,ChatGPT-4,https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg,OpenAI 的最先進大型語言模型，具有強大的理解和生成能力。
+claude3,Claude 3,,Anthropic 開發的對話式 AI 助手，專注於安全和有幫助的回應。
+midjourney,Midjourney,,一個 AI 圖像生成工具，可以根據文字描述創建藝術圖像。
+stablediffusion,Stable Diffusion,,開源的 AI 圖像生成模型，可以在本地運行。
+gemini,Gemini,,Google 的多模態 AI 模型，可以處理文本、圖像和其他類型的數據。
+dalle,DALL-E,,OpenAI 的 AI 圖像生成系統，可以根據文字描述創建逼真的圖像。
+gpt35,GPT-3.5,,OpenAI 的大型語言模型，ChatGPT 的前身版本。
+llama3,Llama 3,,Meta 的開源大型語言模型，可以在本地運行。
+mistral,Mistral AI,,法國初創公司開發的高效能開源大型語言模型。
+perplexity,Perplexity,,基於 AI 的搜索引擎，提供有來源的回答。
+copilot,GitHub Copilot,,由 OpenAI Codex 驅動的 AI 編程助手，幫助開發者編寫代碼。
+bard,Bard,,Google 的對話式 AI 助手，後來更名為 Gemini。
+cascade,Cascade,,Codeium 開發的 AI 編程助手，專注於代碼生成和問題解決。
+codeium,Codeium,,免費的 AI 編程助手，提供代碼補全和建議。
+huggingface,Hugging Face,,AI 社區和模型庫，提供開源的 AI 模型和工具。
