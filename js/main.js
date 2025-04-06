@@ -144,12 +144,12 @@ function populateTierDropzones() {
                 // Find the item data
                 const itemData = [...state.aiItems, ...state.customAIItems].find(item => item.id === itemId);
                 if (itemData) {
-                    // Create and add the item element
+                    // Create the AI item element
                     const aiElement = document.createElement('div');
                     aiElement.className = 'ai-item';
                     aiElement.setAttribute('draggable', 'true');
                     aiElement.setAttribute('data-id', itemData.id);
-                    
+
                     const img = document.createElement('img');
                     img.src = itemData.icon || settings.defaultIconUrl;
                     img.alt = `${itemData.name} Logo`;
