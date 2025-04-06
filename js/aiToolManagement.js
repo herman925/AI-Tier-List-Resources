@@ -1,6 +1,6 @@
 /**
  * aiToolManagement.js
- * Handles AI tool management functionality including editing and saving to CSV
+ * Handles AI tool management functionality including editing and saving to JSON
  */
 
 import { settings } from './config.js';
@@ -92,17 +92,17 @@ export async function showEditAIModal(aiId) {
         // Store original data on the modal for cancellation reset
         modal.dataset.originalData = JSON.stringify(aiData);
 
-        // Set initial language state
-        const initialLang = 'ZH'; // Default to Chinese
-        modalContent.dataset.language = initialLang.toLowerCase(); // Set initial data-language attribute
-        langSwitchEN.classList.toggle('active', initialLang === 'EN');
-        langSwitchZH.classList.toggle('active', initialLang === 'ZH');
+        // Set initial language state based on localStorage or default to Chinese
+        const lastSelectedLang = localStorage.getItem('lastEditAIModalLanguage') || 'ZH';
+        modalContent.dataset.language = lastSelectedLang.toLowerCase(); // Set initial data-language attribute
+        langSwitchEN.classList.toggle('active', lastSelectedLang === 'EN');
+        langSwitchZH.classList.toggle('active', lastSelectedLang === 'ZH');
 
         // CRITICAL: Actually load the language file that matches the button state
-        await loadLanguage(initialLang.toLowerCase());
+        await loadLanguage(lastSelectedLang.toLowerCase());
 
         // Set initial preview based on initial language
-        const initialDescription = initialLang === 'EN' ? aiData.description_en : aiData.description_zh;
+        const initialDescription = lastSelectedLang === 'EN' ? aiData.description_en : aiData.description_zh;
         updatePreview(initialDescription || ''); 
 
         // Show the modal
@@ -136,121 +136,40 @@ export async function getAIItemById(aiId) {
     }
 }
 
-// Get all AI items from CSV
+// Function to load AI items from JSON file or localStorage
 export async function getAllAIItems() {
-    console.log('[getAllAIItems] Attempting to load CSV...'); // Log start
+    console.log('[getAllAIItems] Attempting to load AI items...'); // Log start
     try {
-        console.log(`[getAllAIItems] Fetching from: ${settings.csvPath}`); // Log URL
-        const response = await fetch(settings.csvPath);
+        // Check if we have items in localStorage first
+        const storedItems = localStorage.getItem('ai-tools-json');
+        if (storedItems) {
+            console.log('[getAllAIItems] Found items in localStorage');
+            const parsedItems = JSON.parse(storedItems);
+            console.log('[getAllAIItems] Parsed items from localStorage:', parsedItems);
+            return parsedItems;
+        }
+        
+        // If not in localStorage, load from JSON file
+        const jsonPath = settings.csvPath.replace('.csv', '.json'); // Use JSON file instead
+        console.log(`[getAllAIItems] Fetching from: ${jsonPath}`); // Log URL
+        const response = await fetch(jsonPath);
         console.log(`[getAllAIItems] Fetch response status: ${response.status}, ok: ${response.ok}`); // Log status
         
         if (!response.ok) {
-            throw new Error(`Failed to load CSV: ${response.status} ${response.statusText}`);
+            throw new Error(`Failed to load JSON: ${response.status} ${response.statusText}`);
         }
         
-        const csvText = await response.text();
-        console.log('[getAllAIItems] Raw CSV text received:', csvText.substring(0, 200) + '...'); // Log raw text (truncated)
+        const items = await response.json();
+        console.log('[getAllAIItems] JSON data received:', items.length, 'items'); // Log item count
         
-        const parsedItems = parseCSV(csvText);
-        console.log('[getAllAIItems] Parsed items:', parsedItems); // Log parsed items
-        return parsedItems;
+        // Save to localStorage for future use
+        localStorage.setItem('ai-tools-json', JSON.stringify(items));
+        
+        return items;
     } catch (error) {
-        console.error('[getAllAIItems] Error loading AI items from CSV:', error); // Log error
+        console.error('[getAllAIItems] Error loading AI items:', error);
         return [];
     }
-}
-
-// Parse CSV text into array of objects
-function parseCSV(csvText) {
-    // Handle UTF-8 BOM if present
-    const text = csvText.charCodeAt(0) === 0xFEFF ? csvText.slice(1) : csvText;
-    
-    // Split into lines
-    const rows = text.trim().split(/\r?\n/); // Use regex for cross-platform line breaks and trim whitespace
-    if (rows.length < 2) return []; // Need at least header + one data row
-    
-    // Get headers from first row
-    const headers = rows[0].split(',').map(header => header.trim());
-    console.log('[parseCSV] Using headers:', headers);
-
-    // Process each data row
-    const items = [];
-    for (let i = 1; i < rows.length; i++) {
-        const row = rows[i];
-        if (!row.trim()) continue; // Skip empty rows
-        
-        // For this specific CSV format, we know there are 7 columns:
-        // id, name_zh, name_en, icon, description_zh, description_en, tier_id
-        // The issue is with description_en which may contain commas
-        
-        // First, get the ID which is always at the start
-        const idMatch = row.match(/^([^,]+),/);
-        if (!idMatch) continue;
-        const id = idMatch[1];
-        
-        // Find the last comma which separates tier_id from the rest
-        const lastCommaIndex = row.lastIndexOf(',');
-        if (lastCommaIndex === -1) continue;
-        
-        // Extract tier_id from the end
-        const tier_id = row.substring(lastCommaIndex + 1).trim();
-        
-        // Now handle the middle part by finding specific patterns
-        // Remove the id and tier_id parts we've already processed
-        const middlePart = row.substring(idMatch[0].length, lastCommaIndex);
-        
-        // Split the middle part into 5 segments (name_zh, name_en, icon, description_zh, description_en)
-        // We'll use a regex to match the first 4 fields which are less likely to contain commas
-        const fieldsRegex = /([^,]*),([^,]*),([^,]*),([^,]*),/;
-        const fieldsMatch = middlePart.match(fieldsRegex);
-        
-        if (!fieldsMatch) continue;
-        
-        // Extract the first 4 fields
-        const name_zh = fieldsMatch[1].trim();
-        const name_en = fieldsMatch[2].trim();
-        const icon = fieldsMatch[3].trim();
-        
-        // The remaining text after the first 4 fields contains description_zh and description_en
-        const descriptionPart = middlePart.substring(fieldsMatch[0].length);
-        
-        // Find the boundary between description_zh and description_en
-        // We'll assume description_zh doesn't contain periods followed by English text
-        const descBoundaryRegex = /\.,/;
-        const descBoundaryMatch = descriptionPart.match(descBoundaryRegex);
-        
-        let description_zh = '';
-        let description_en = '';
-        
-        if (descBoundaryMatch) {
-            const boundaryIndex = descriptionPart.indexOf(descBoundaryMatch[0]);
-            description_zh = descriptionPart.substring(0, boundaryIndex + 1).trim(); // Include the period
-            description_en = descriptionPart.substring(boundaryIndex + 2).trim(); // Skip the comma and space
-        } else {
-            // Fallback: just split at the first comma if we can't find a better boundary
-            const parts = descriptionPart.split(',', 2);
-            description_zh = parts[0].trim();
-            description_en = parts.length > 1 ? parts[1].trim() : '';
-        }
-        
-        // Create the item object
-        const item = {
-            id,
-            name_zh,
-            name_en,
-            icon,
-            description_zh,
-            description_en,
-            tier_id
-        };
-        
-        // Debug log
-        console.log(`[parseCSV] Parsed item ${id} with tier_id: ${tier_id}`);
-        
-        items.push(item);
-    }
-    
-    return items;
 }
 
 // Save AI item changes
@@ -268,7 +187,7 @@ export async function saveAIItemChanges(aiId, newData, updateUICallback) {
         // Update the item
         allItems[itemIndex] = { ...allItems[itemIndex], ...newData };
         
-        // Save back to CSV
+        // Save back to JSON
         await saveAllAIItems(allItems);
         
         // Call the update UI callback if provided
@@ -283,7 +202,7 @@ export async function saveAIItemChanges(aiId, newData, updateUICallback) {
     }
 }
 
-// Save all AI items back to CSV
+// Save all AI items back to JSON
 export async function saveAllAIItems(items) {
     try {
         // Get headers from the first item
@@ -291,35 +210,20 @@ export async function saveAllAIItems(items) {
             throw new Error('No items to save');
         }
         
-        const headers = Object.keys(items[0]);
-        
-        // Create CSV content
-        let csvContent = '\ufeff' + headers.join(',') + '\n';
-        
-        items.forEach(item => {
-            const values = headers.map(header => {
-                // Escape commas and quotes in values
-                let value = item[header] || '';
-                if (value.includes(',') || value.includes('"')) {
-                    value = '"' + value.replace(/"/g, '""') + '"';
-                }
-                return value;
-            });
-            csvContent += values.join(',') + '\n';
-        });
+        // Create JSON content
+        const jsonContent = JSON.stringify(items, null, 2);
         
         // Save to file using fetch and a server endpoint
         // For local development, we'll need to use a different approach
         // This is a placeholder for a real implementation
-        console.log('CSV content to save:', csvContent);
-        alert('Changes saved! (Note: In a real implementation, this would save to the CSV file)');
+        console.log('JSON content to save:', jsonContent);
         
         // For now, we'll simulate saving by updating localStorage
-        localStorage.setItem('ai-tools-csv', csvContent);
+        localStorage.setItem('ai-tools-json', jsonContent);
         
         return true;
     } catch (error) {
-        console.error('Error saving AI items to CSV:', error);
+        console.error('Error saving AI items to JSON:', error);
         return false;
     }
 }
@@ -370,6 +274,9 @@ export function setupEditModalListeners(updateUICallback) {
 
         // Update data-language attribute for CSS rules to work
         modalContent.dataset.language = isEN ? 'en' : 'zh';
+        
+        // Save the selected language to localStorage for persistence
+        localStorage.setItem('lastEditAIModalLanguage', targetLang);
         
         // Update button active states
         langSwitchEN.classList.toggle('active', isEN);
@@ -516,7 +423,7 @@ export function setupEditModalListeners(updateUICallback) {
         
         console.log("[Form Submit] Saving data:", updatedData);
 
-        // Call the save function (assuming it handles backend/CSV update)
+        // Call the save function (assuming it handles backend/JSON update)
         const success = await saveAIItemChanges(aiId, updatedData, updateUICallback);
 
         if (success) {
@@ -669,21 +576,20 @@ export async function addAIItem(newAI) {
         if (!newAI.id) {
             // Get all existing items to ensure unique ID
             const allItems = await getAllAIItems();
-            // Find the highest existing numeric ID
-            const maxId = allItems.reduce((max, item) => {
-                const idNum = parseInt(item.id.replace(/\D/g, ''));
-                return isNaN(idNum) ? max : Math.max(max, idNum);
-            }, 0);
-            // Create new ID with format AI### (padded to 3 digits)
-            newAI.id = `AI${(maxId + 1).toString().padStart(3, '0')}`;
+            const lastId = allItems.length > 0 ? 
+                allItems[allItems.length - 1].id : 'AI000';
+            
+            // Extract the numeric part and increment
+            const numPart = parseInt(lastId.replace(/\D/g, ''));
+            newAI.id = `AI${String(numPart + 1).padStart(3, '0')}`;
         }
         
         // Add the new item to the collection
         const allItems = await getAllAIItems();
         allItems.push(newAI);
         
-        // Save the updated collection
-        await saveAllAIItems(allItems);
+        // Save the updated collection to localStorage
+        localStorage.setItem('ai-tools-json', JSON.stringify(allItems, null, 2));
         
         console.log(`[addAIItem] Successfully added AI item with ID: ${newAI.id}`);
         return true;

@@ -1,0 +1,137 @@
+[
+  {
+    "id": "AI001",
+    "name_zh": "ChatGPT-4o",
+    "name_en": "ChatGPT-4o",
+    "icon": "https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg",
+    "description_zh": "#OpenAI 的最先進大型語言模型，具有強大的理解和生成能力.",
+    "description_en": "OpenAI's most advanced large language model, with powerful understanding and generation capabilities.",
+    "tier_id": "B"
+  },
+  {
+    "id": "AI002",
+    "name_zh": "Claude 3.7 Sonnet",
+    "name_en": "Claude 3.7 Sonnet",
+    "icon": "https://cdn.prod.website-files.com/655e058eaec6a02b8b6e3fb9/66d72e28e9420299c95e6780_claude.png",
+    "description_zh": "Anthropic 開發的對話式 AI 助手，專注於安全和有幫助的回應.",
+    "description_en": "Conversational AI assistant developed by Anthropic, focusing on safe and helpful responses.",
+    "tier_id": "A"
+  },
+  {
+    "id": "AI003",
+    "name_zh": "Midjourney",
+    "name_en": "Midjourney",
+    "icon": "https://upload.wikimedia.org/wikipedia/commons/1/10/Midjourney_Emblem_%E2%80%94_Discord.svg",
+    "description_zh": "一個 AI 圖像生成工具，可以根據文字描述創建藝術圖像.",
+    "description_en": "An AI image generation tool that creates artistic images from text descriptions.",
+    "tier_id": ""
+  },
+  {
+    "id": "AI004",
+    "name_zh": "Stable Diffusion",
+    "name_en": "Stable Diffusion",
+    "icon": "",
+    "description_zh": "開源的 AI 圖像生成模型，可以在本地運行.",
+    "description_en": "Open-source AI image generation model that can run locally.",
+    "tier_id": ""
+  },
+  {
+    "id": "AI005",
+    "name_zh": "雙子星 2.5 Pro",
+    "name_en": "Gemini 2.5 Pro",
+    "icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcThr7qrIazsvZwJuw-uZCtLzIjaAyVW_ZrlEQ&s",
+    "description_zh": "Google 的多模態 AI 模型，可以處理文本、圖像和其他類型的數據.",
+    "description_en": "Google's multimodal AI model that can process text, images, and other data types.",
+    "tier_id": "A"
+  },
+  {
+    "id": "AI006",
+    "name_zh": "POE by Quora",
+    "name_en": "POE by Quora",
+    "icon": "https://cdn.prod.website-files.com/648e04d4bbae7004f1b35f15/65d4ebfb2cf5f7070b31f771_poe-icon.jpeg",
+    "description_zh": "問答平台巨頭Quora開發的超級AI整合器，可以使用多種AI模型，包括付費和免費的選項。",
+    "description_en": "Super AI integrator developed by Quora, the leading Q&A platform, offering access to multiple AI models including both paid and free options.",
+    "tier_id": "S"
+  },
+  {
+    "id": "AI007",
+    "name_zh": "Openrouter",
+    "name_en": "Openrouter",
+    "icon": "https://custom.typingmind.com/assets/models/openrouterai.png",
+    "description_zh": "OpenRouter 是一個統一的 API 服務平台，讓使用者透過單一介面訪問多種大型語言模型（LLM）。OpenRouter最讓人印象深刻的是其推出的「同時聊」服務，該服務整合了多種大型語言模型，如ChatGPT, Gemini, DeepSeek等，讓使用者能同時與多個 AI 聊天機器人互動",
+    "description_en": "OpenRouter is a unified API service platform that allows users to access multiple large language models (LLMs) through a single interface. OpenRouter is most impressive for its 'Chat Together' service, which integrates multiple large language models, such as ChatGPT, Gemini, and DeepSeek, allowing users to interact with multiple AI chatbots simultaneously.",
+    "tier_id": "S"
+  },
+  {
+    "id": "AI008",
+    "name_zh": "DeepSeek R1",
+    "name_en": "DeepSeek R1",
+    "icon": "https://cdn.prod.website-files.com/648e04d4bbae7004f1b35f15/65d4ebfb2cf5f7070b31f771_poe-icon.jpeg",
+    "description_zh": "一個整合多種AI模型的平台，讓用戶可以通過統一的API訪問各種不同的AI服務。",
+    "description_en": "A platform that integrates multiple AI models, allowing users to access various AI services through a unified API.",
+    "tier_id": "B"
+  },
+  {
+    "id": "AI009",
+    "name_zh": "Mistral AI",
+    "name_en": "Mistral AI",
+    "icon": "",
+    "description_zh": "法國初創公司開發的高效能開源大型語言模型.",
+    "description_en": "High-performance open-source large language model developed by a French startup.",
+    "tier_id": ""
+  },
+  {
+    "id": "AI010",
+    "name_zh": "Perplexity",
+    "name_en": "Perplexity",
+    "icon": "https://cdn.prod.website-files.com/648e04d4bbae7004f1b35f15/65de12e5d6d44d63f4750759_perplexity-icon.jpeg",
+    "description_zh": "基於 AI 的搜索引擎，提供有來源的回答.",
+    "description_en": "AI-based search engine that provides answers with sources.",
+    "tier_id": "S"
+  },
+  {
+    "id": "AI011",
+    "name_zh": "GitHub Copilot",
+    "name_en": "GitHub Copilot",
+    "icon": "",
+    "description_zh": "由 OpenAI Codex 驟動的 AI 編程助手，幫助開發者編寫代碼.",
+    "description_en": "AI programming assistant powered by OpenAI Codex, helping developers write code.",
+    "tier_id": ""
+  },
+  {
+    "id": "AI012",
+    "name_zh": "Bard",
+    "name_en": "Bard",
+    "icon": "",
+    "description_zh": "Google 的對話式 AI 助手，後來更名為 Gemini.",
+    "description_en": "Google's conversational AI assistant, later renamed Gemini.",
+    "tier_id": ""
+  },
+  {
+    "id": "AI013",
+    "name_zh": "Cascade",
+    "name_en": "Cascade",
+    "icon": "",
+    "description_zh": "Codeium 開發的 AI 編程助手，專注於代碼生成和問題解決.",
+    "description_en": "AI programming assistant developed by Codeium, focusing on code generation and problem-solving.",
+    "tier_id": ""
+  },
+  {
+    "id": "AI014",
+    "name_zh": "文心大模型4.5",
+    "name_en": "Codeium",
+    "icon": "",
+    "description_zh": "免費的 AI 編程助手，提供代碼補全和建議.",
+    "description_en": "Free AI programming assistant providing code completion and suggestions.",
+    "tier_id": ""
+  },
+  {
+    "id": "AI015",
+    "name_zh": "Google AI Studio",
+    "name_en": "Google AI Studio",
+    "icon": "https://cdn-1.webcatalog.io/catalog/google-ai-studio/google-ai-studio-icon.png",
+    "description_zh": "Google 的免費AI沙盒，有Google所有最新的模型可以使用，而且還備有「神器」，包括「媲美P圖的AI繪圖工具」還有「實時共享畫面」",
+    "description_en": "A free sandbox with Google's latest models, including blackmagic-level tools like 'AI Photo Gen/Edit' and 'Stream Realtime'",
+    "tier_id": "S"
+  }
+]

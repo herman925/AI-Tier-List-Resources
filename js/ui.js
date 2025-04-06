@@ -6,6 +6,7 @@
 import { settings } from './config.js';
 import { getCurrentTranslations, updateStaticText, loadLanguage, setLanguage } from './languageManager.js'; 
 import { addAIItem } from './aiToolManagement.js'; // Import the addAIItem function
+import { initDragAndDrop } from './dragDrop.js'; // Import initDragAndDrop instead
 
 // Render a single AI item
 export function renderAIItem(item, container) {
@@ -17,12 +18,27 @@ export function renderAIItem(item, container) {
     console.log('[renderAIItem] Setting data-id for item:', item, 'item.id:', item.id);
     aiElement.setAttribute('data-id', item.id);
     
+    // Get current language
+    const currentLang = document.documentElement.lang || 'zh'; // Default to Chinese
+    
     const img = document.createElement('img');
     img.src = item.icon || settings.defaultIconUrl;
-    img.alt = `${item.name_zh || item.name || 'AI Tool'} Logo`; // Use name_zh, fallback to name, then generic
+    
+    // Use language-specific name for alt text
+    const altText = currentLang === 'en' ? 
+        (item.name_en || item.name || 'AI Tool') : 
+        (item.name_zh || item.name || 'AI 工具');
+    img.alt = `${altText} Logo`;
     
     const name = document.createElement('span');
-    name.textContent = item.name_zh || item.name || item.id; // Display name_zh, fallback to old name, then ID
+    // Use language-specific name for display text
+    name.textContent = currentLang === 'en' ? 
+        (item.name_en || item.name || item.id) : 
+        (item.name_zh || item.name || item.id);
+    
+    // Store both language versions as data attributes for easy switching
+    aiElement.setAttribute('data-name-en', item.name_en || item.name || item.id);
+    aiElement.setAttribute('data-name-zh', item.name_zh || item.name || item.id);
     
     aiElement.appendChild(img);
     aiElement.appendChild(name);
@@ -47,10 +63,16 @@ export function renderTier(tier, container) {
     labelContainer.className = 'tier-label-container';
     labelContainer.style.backgroundColor = tier.color;
     
-    // Create tier label - show the name instead of the ID
+    // Get current language
+    const currentLang = document.documentElement.lang || 'zh'; // Default to Chinese
+    
+    // Create tier label - show the name based on current language
     const tierLabel = document.createElement('span');
     tierLabel.className = 'tier-label';
-    tierLabel.textContent = tier.name; // Use name instead of ID
+    // Use language-specific name
+    tierLabel.textContent = currentLang === 'en' ? tier.name_en : tier.name_zh;
+    tierLabel.setAttribute('data-tier-name-en', tier.name_en); // Store both names as data attributes
+    tierLabel.setAttribute('data-tier-name-zh', tier.name_zh); // for easy language switching
     tierLabel.style.backgroundColor = tier.color;
     tierLabel.style.color = getContrastColor(tier.color);
     
@@ -58,7 +80,7 @@ export function renderTier(tier, container) {
     const nameInput = document.createElement('input');
     nameInput.type = 'text';
     nameInput.className = 'tier-name-input';
-    nameInput.value = tier.name;
+    nameInput.value = currentLang === 'en' ? tier.name_en : tier.name_zh; // Use language-specific name
     nameInput.style.display = 'none';
     nameInput.style.backgroundColor = tier.color;
     nameInput.style.color = getContrastColor(tier.color);
@@ -77,9 +99,19 @@ export function renderTier(tier, container) {
         if (isEditing) {
             nameInput.focus();
         } else {
-            // Apply changes
-            tier.name = nameInput.value;
-            tierLabel.textContent = tier.name; // Update the displayed name
+            // Apply changes based on current language
+            if (currentLang === 'en') {
+                tier.name_en = nameInput.value;
+                tierLabel.setAttribute('data-tier-name-en', nameInput.value);
+            } else {
+                tier.name_zh = nameInput.value;
+                tierLabel.setAttribute('data-tier-name-zh', nameInput.value);
+            }
+            
+            // Update the displayed name
+            tierLabel.textContent = nameInput.value;
+            
+            // Update color
             tier.color = colorPicker.value;
             labelContainer.style.backgroundColor = tier.color;
             tierLabel.style.backgroundColor = tier.color;
@@ -226,6 +258,9 @@ export function setupModals(addTierCallback) {
             addTierLangEN.classList.toggle('active', isEN);
             addTierLangZH.classList.toggle('active', !isEN);
             
+            // Save the selected language to localStorage for persistence
+            localStorage.setItem('lastAddTierModalLanguage', lang);
+            
             // Toggle visibility of language-specific containers
             addTierNameENContainer.style.display = isEN ? 'block' : 'none';
             addTierNameZHContainer.style.display = isEN ? 'none' : 'block';
@@ -253,11 +288,11 @@ export function setupModals(addTierCallback) {
             });
         }
 
-        // Set initial language based on current app language or default (e.g., 'zh')
-        const currentAppLang = document.documentElement.lang || 'zh'; 
-        setAddTierLanguage(currentAppLang); 
+        // Set initial language based on localStorage or current app language
+        const lastAddTierLang = localStorage.getItem('lastAddTierModalLanguage') || document.documentElement.lang || 'zh';
+        setAddTierLanguage(lastAddTierLang);
         // Ensure the correct button is active initially
-        if (currentAppLang === 'en') { 
+        if (lastAddTierLang === 'en') { 
             // Removed manual classList changes
         } else {
             // Removed manual classList changes
@@ -347,6 +382,9 @@ export function setupAddCustomAI(aiToolManager) {
             return; // Exit if content area isn't found
         }
         
+        // Save the selected language to localStorage for persistence
+        localStorage.setItem('lastAddAIModalLanguage', targetLang);
+
         // 2. Update THIS modal's button active states DIRECTLY
         langSwitchEN.classList.toggle('active', isEN);
         langSwitchZH.classList.toggle('active', !isEN);
@@ -424,10 +462,15 @@ export function setupAddCustomAI(aiToolManager) {
         
         form.reset(); 
         updatePreview(''); 
-        const globalLang = window.languageManager?.getCurrentLanguage() || 'zh'; 
-        console.log(`[setupAddCustomAI] Setting initial language via switchLanguage(${globalLang === 'en' ? 'EN' : 'ZH'})...`); // Log: Before switch
         
-        switchLanguage(globalLang === 'en' ? 'EN' : 'ZH').then(() => {
+        // Use the last selected language from localStorage if available
+        // Otherwise fall back to the global language
+        const lastSelectedLang = localStorage.getItem('lastAddAIModalLanguage') || 
+                               (window.languageManager?.getCurrentLanguage() === 'en' ? 'EN' : 'ZH');
+        
+        console.log(`[setupAddCustomAI] Setting initial language via switchLanguage(${lastSelectedLang})...`);
+        
+        switchLanguage(lastSelectedLang).then(() => {
             console.log("[setupAddCustomAI] switchLanguage .then() block executed."); // Log: Success callback
             modal.style.display = 'flex'; // Change to flex for proper centering
             console.log("[setupAddCustomAI] Modal display set to 'flex'."); // Updated log
@@ -469,8 +512,22 @@ export function setupAddCustomAI(aiToolManager) {
             if (success) {
                 modal.style.display = 'none';
                 form.reset();
-                // Refresh the UI to show the new item
-                window.location.reload(); // Simple refresh for now
+                
+                // Get the unranked pool container
+                const unrankedPoolContainer = document.getElementById('ai-items');
+                if (unrankedPoolContainer) {
+                    // Create and add the new AI item to the UI
+                    const aiElement = renderAIItem(newAI);
+                    unrankedPoolContainer.appendChild(aiElement);
+                    
+                    // Instead of trying to initialize drag-drop directly,
+                    // we'll reload the page to ensure all systems are properly initialized
+                    alert('AI item added successfully!');
+                    window.location.reload();
+                } else {
+                    console.error('Could not find unranked pool container');
+                    alert('AI item added but could not be displayed. Please refresh the page.');
+                }
             } else {
                 alert('Failed to add AI item. Please try again.');
             }

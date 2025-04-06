@@ -108,6 +108,7 @@ function renderTiers(tiers) {
 
     // Determine current language (example - needs integration with actual language state)
     const currentLang = document.documentElement.lang || 'zh'; // Default to 'zh'
+    console.log(`[TierManagement Debug] Current language: ${currentLang}`);
 
     tiers.forEach(tier => {
         const tierRow = document.createElement('div');
@@ -119,30 +120,37 @@ function renderTiers(tiers) {
         tierLabel.className = 'tier-label';
         tierLabel.style.backgroundColor = tier.color;
         tierLabel.setAttribute('data-tier', tier.id); // Use data-tier for consistency
+        
+        // Store language-specific names as data attributes for easy language switching
+        tierLabel.setAttribute('data-name-en', tier.name_en);
+        tierLabel.setAttribute('data-name-zh', tier.name_zh);
 
         const tierNameSpan = document.createElement('span');
-        tierNameSpan.textContent = (currentLang === 'en' && tier.name_en) ? tier.name_en : tier.name_zh; // Display based on language
+        // Display based on language
+        const displayName = currentLang === 'en' ? tier.name_en : tier.name_zh;
+        tierNameSpan.textContent = displayName;
+        console.log(`[TierManagement Debug] Tier ${tier.id} name (${currentLang}): ${displayName}`);
 
         // Apply text color based on background
         const textColor = getTextColorForBackground(tier.color);
         tierLabel.style.color = textColor;
 
-        // Add Remove Tier button
-        const removeBtn = document.createElement('button');
-        removeBtn.textContent = '❌';
-        removeBtn.className = 'remove-tier-btn'; // Add class for styling/selection
-        removeBtn.title = `Remove Tier ${tier.id}`;
-        removeBtn.style.marginLeft = '10px'; // Basic spacing
-        removeBtn.style.cursor = 'pointer';
-        removeBtn.style.border = 'none';
-        removeBtn.style.background = 'none';
-        removeBtn.onclick = (event) => {
-            event.stopPropagation(); // Prevent tier click events if any
-            removeTier(event);
-        };
+        // Remove the tier removal button - no longer needed
+        // const removeBtn = document.createElement('button');
+        // removeBtn.textContent = '❌';
+        // removeBtn.className = 'remove-tier-btn';
+        // removeBtn.title = `Remove Tier ${tier.id}`;
+        // removeBtn.style.marginLeft = '10px';
+        // removeBtn.style.cursor = 'pointer';
+        // removeBtn.style.border = 'none';
+        // removeBtn.style.background = 'none';
+        // removeBtn.onclick = (event) => {
+        //     event.stopPropagation();
+        //     removeTier(event);
+        // };
 
         tierLabel.appendChild(tierNameSpan);
-        tierLabel.appendChild(removeBtn); // Append remove button to label
+        // tierLabel.appendChild(removeBtn); // No longer appending the remove button
 
         const tierItems = document.createElement('div');
         tierItems.className = 'tier-items tier-dropzone'; // Add tier-dropzone class for drag/drop
@@ -153,13 +161,8 @@ function renderTiers(tiers) {
         tierListContainer.appendChild(tierRow);
     });
 
-    // Check if minimum tiers reached to enable remove button
-    const allRemoveButtons = tierListContainer.querySelectorAll('.remove-tier-button');
-    const enableRemove = loadedTiers.length > settings.minTiers;
-    allRemoveButtons.forEach(button => button.disabled = !enableRemove);
-
-    // Language update for dynamic elements (like tier labels) should be handled
-    // centrally after rendering, e.g., by calling languageManager.updateAllText() in main.js
+    // No need to check for minimum tiers or enable/disable remove buttons
+    // since we're removing the remove tier functionality
 
     console.log(`[TierManagement Debug] Tier rendering loop finished. ${tiers.length} tiers processed.`);
 }
@@ -184,13 +187,27 @@ function setupEventListeners() {
          console.warn("[TierManagement] Save Tiers button '#save-tiers-btn' not found.");
     }
 
-    // Add listener for language changes (example, needs integration)
-    // Assuming a custom event 'languageChanged' is dispatched on the documentElement
-     document.documentElement.addEventListener('languageChanged', (event) => {
-        console.log(`[TierManagement] Language changed to: ${event.detail.lang}. Re-rendering tiers.`);
-        renderTiers(loadedTiers); // Re-render with new language
-     });
-
+    // Add listener for language changes
+    document.documentElement.addEventListener('languageChanged', (event) => {
+        console.log(`[TierManagement] Language changed to: ${event.detail.lang}. Updating tier labels.`);
+        
+        const currentLang = event.detail.lang;
+        const tierLabels = document.querySelectorAll('#tier-list-container .tier-label');
+        
+        tierLabels.forEach(label => {
+            // Get stored language-specific names from data attributes
+            const nameEn = label.getAttribute('data-name-en');
+            const nameZh = label.getAttribute('data-name-zh');
+            
+            // Find the span element containing the tier name
+            const nameSpan = label.querySelector('span');
+            if (nameSpan && nameEn && nameZh) {
+                // Update the displayed text based on current language
+                nameSpan.textContent = currentLang === 'en' ? nameEn : nameZh;
+                console.log(`[TierManagement] Updated tier label to: ${nameSpan.textContent}`);
+            }
+        });
+    });
 }
 
 /**

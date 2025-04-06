@@ -8,8 +8,7 @@ import { settings } from './config.js';
 import { renderAIPool, renderTiers as renderUITiers, setupModals, setupAddCustomAI, setupTierControls, setupActionButtons, renderAIItem } from './ui.js';
 import { initDragAndDrop } from './dragDrop.js';
 import { saveState, loadState, clearState, exportAsImage, generateShareableLink, loadFromShareableLink } from './storage.js';
-// Import only exported functions and alias them
-import { loadTiers, getLoadedTiers, handleAddTier as importedHandleAddTier, removeTier as importedRemoveTier, saveTiersToFile } from './tierManagement.js'; 
+import { loadTiers, getLoadedTiers, handleAddTier as importedHandleAddTier, saveTiersToFile } from './tierManagement.js'; 
 import { setupEditModalListeners, getAllAIItems, showEditAIModal } from './aiToolManagement.js';
 import { exportStateToCSV } from './exportManager.js'; // Import the updated export function
 
@@ -320,9 +319,6 @@ function handleStateChange(newState) {
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("[main.js] DOM fully loaded and parsed");
 
-    // Initialize Language Manager and load default/saved language
-    // await initializeLanguageManager();
-
     // Initialize tier management (loads tiers and items)
     // await initializeTiers();
 
@@ -331,6 +327,66 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Setup button listeners
     // setupButtonListeners();
+
+    // Add language change event listener to update tier names
+    document.documentElement.addEventListener('languageChanged', (event) => {
+        console.log("[main.js] Language changed to:", event.detail.lang);
+        
+        // Update tier labels based on current language
+        const currentLang = event.detail.lang;
+        
+        // First, update tier labels in the tier list
+        const tierRows = document.querySelectorAll('.tier-row');
+        tierRows.forEach(row => {
+            const tierId = row.getAttribute('data-tier');
+            if (!tierId) return;
+            
+            // Find the tier in the loaded tiers
+            const tier = state.tiers.find(t => t.id === tierId);
+            if (!tier) return;
+            
+            // Find the label element within this tier row
+            const labelElement = row.querySelector('.tier-label');
+            if (labelElement) {
+                // Update the label text based on current language
+                const tierName = currentLang === 'en' ? tier.name_en : tier.name_zh;
+                if (tierName) {
+                    labelElement.textContent = tierName;
+                    console.log(`[main.js] Updated tier ${tierId} label to: ${tierName}`);
+                }
+            }
+        });
+        
+        // Also update any tier labels that might be in the tier management UI
+        const managementLabels = document.querySelectorAll('#tier-list-container .tier-label span');
+        managementLabels.forEach(label => {
+            const tierRow = label.closest('[data-tier]');
+            if (!tierRow) return;
+            
+            const tierId = tierRow.getAttribute('data-tier');
+            const tier = state.tiers.find(t => t.id === tierId);
+            if (tier) {
+                label.textContent = currentLang === 'en' ? tier.name_en : tier.name_zh;
+            }
+        });
+        
+        // Update AI tool labels based on current language
+        const aiItems = document.querySelectorAll('.ai-item');
+        aiItems.forEach(item => {
+            const nameEn = item.getAttribute('data-name-en');
+            const nameZh = item.getAttribute('data-name-zh');
+            
+            if (nameEn && nameZh) {
+                // Find the name span element (the second child)
+                const nameSpan = item.querySelector('span');
+                if (nameSpan) {
+                    // Update the displayed text based on current language
+                    nameSpan.textContent = currentLang === 'en' ? nameEn : nameZh;
+                    console.log(`[main.js] Updated AI item label to: ${nameSpan.textContent}`);
+                }
+            }
+        });
+    });
 
     // --- Add listener for Export CSV button ---
     const exportCsvButton = document.getElementById('export-csv-button');

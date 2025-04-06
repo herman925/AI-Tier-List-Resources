@@ -175,7 +175,14 @@ function getNestedTranslation(langData, key) {
  */
 async function loadLanguage(lang) {
     console.log(`[LanguageManager] Attempting to load language file: ${lang}`);
-    const filePath = `translations/${lang}.json`; // Correct path
+    
+    // Map language codes to available translation files
+    let mappedLang = lang;
+    if (lang === 'zh-Hant' || lang === 'zh-CN' || lang === 'zh-TW') {
+        mappedLang = 'zh'; // Map all Chinese variants to zh.json
+    }
+    
+    const filePath = `translations/${mappedLang}.json`; // Use mapped language code
     try {
         const response = await fetch(filePath);
         if (!response.ok) {

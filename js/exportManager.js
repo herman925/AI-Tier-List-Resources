@@ -1,7 +1,7 @@
 /**
  * exportManager.js
- * Handles exporting the current application state (AI tools, Tiers, Placements)
- * as separate CSV files.
+ * Handles exporting the current application state (AI tools, Tiers)
+ * as JSON for AI tools and CSV for tiers.
  */
 
 // Import necessary functions from other modules
@@ -24,10 +24,11 @@ function formatCsvField(field) {
     return stringField;
 }
 
-// Helper function to trigger the download of a CSV file
-function triggerCSVDownload(filename, csvContent) {
+// Helper function to trigger the download of a file
+function triggerDownload(filename, content, type = 'text/csv') {
     console.log(`[ExportManager] Triggering download for ${filename}...`);
-    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' }); // Add BOM for Excel compatibility
+    const bom = type === 'text/csv' ? "\uFEFF" : ""; // Add BOM for CSV files (Excel compatibility)
+    const blob = new Blob([bom + content], { type: `${type};charset=utf-8;` });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
@@ -40,9 +41,9 @@ function triggerCSVDownload(filename, csvContent) {
     console.log(`[ExportManager] Download initiated for ${filename}.`);
 }
 
-// Main export function - generates and triggers downloads for ai_tools.csv and tiers.csv
-export async function exportStateToCSV() { // Make the function async
-    console.log("[ExportManager] Starting state export to CSV...");
+// Main export function - generates and triggers downloads for ai_tools.json and tiers.csv
+export async function exportStateToCSV() { // Function name kept for backward compatibility
+    console.log("[ExportManager] Starting state export...");
 
     try {
         // --- 1. Generate tiers.csv (Unchanged) --- 
@@ -55,11 +56,10 @@ export async function exportStateToCSV() { // Make the function async
             formatCsvField(tier.color)
         ].join(','));
         const tiersCsvContent = tiersHeader + "\n" + tiersRows.join("\n");
-        triggerCSVDownload("tiers.csv", tiersCsvContent);
+        triggerDownload("tiers.csv", tiersCsvContent, 'text/csv');
 
-        // --- 2. Generate combined ai_tools.csv with current placements --- 
-        const allAIItemsData = await getAllAIItems(); // Get base data (might have outdated tier_id)
-        const aiToolsHeader = "id,name_zh,name_en,icon,description_zh,description_en,tier_id";
+        // --- 2. Generate ai_tools.json with current placements --- 
+        const allAIItemsData = await getAllAIItems(); // Get base data
         const currentItemStates = new Map(); // Map to store current tier_id per item
 
         // Get current placements from DOM
@@ -87,26 +87,22 @@ export async function exportStateToCSV() { // Make the function async
         });
 
         // Combine base data with current placements
-        const aiToolsRows = allAIItemsData.map(item => {
-            const currentTierId = currentItemStates.has(item.id) ? currentItemStates.get(item.id) : ''; // Default to unranked if not found in DOM (shouldn't happen)
-            return [
-                formatCsvField(item.id),
-                formatCsvField(item.name_zh),
-                formatCsvField(item.name_en),
-                formatCsvField(item.icon),
-                formatCsvField(item.description_zh),
-                formatCsvField(item.description_en),
-                formatCsvField(currentTierId) // Use the current tier ID from DOM
-            ].join(',');
+        const updatedAIItems = allAIItemsData.map(item => {
+            const currentTierId = currentItemStates.has(item.id) ? currentItemStates.get(item.id) : ''; // Default to unranked if not found in DOM
+            return {
+                ...item,
+                tier_id: currentTierId // Use the current tier ID from DOM
+            };
         });
 
-        const aiToolsCsvContent = aiToolsHeader + "\n" + aiToolsRows.join("\n");
-        triggerCSVDownload("ai_tools.csv", aiToolsCsvContent); // Export as ai_tools.csv
+        // Format as pretty JSON with 2-space indentation
+        const jsonContent = JSON.stringify(updatedAIItems, null, 2);
+        triggerDownload("ai_tools.json", jsonContent, 'application/json');
 
-        console.log("[ExportManager] AI Tools and Tiers CSV exports initiated.");
+        console.log("[ExportManager] AI Tools (JSON) and Tiers (CSV) exports initiated.");
 
     } catch (error) {
-        console.error("[ExportManager] Error during CSV export:", error);
+        console.error("[ExportManager] Error during export:", error);
         // Optionally show a user-friendly error message
         const errorMsg = getCurrentLanguageTranslations()?.alertExportError || "An error occurred during export.";
         alert(errorMsg);

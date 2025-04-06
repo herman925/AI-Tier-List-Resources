@@ -1,12 +1,12 @@
 {
-  "appName": "AI Tier List Maker",
+  "appName": "925's AI Tier List",
   "language": "Language",
-  "pageTitle": "AI Tier List Maker", 
+  "pageTitle": "925's AI Tier List", 
   "header": {
-    "title": "AI Tier List Maker",
+    "title": "925's AI Tier List",
     "subtitle": "Create and share your AI tool rankings",
     "languageLabel": "Language:",
-    "langSwitchZH": "ZH",
+    "langSwitchZH": "中",
     "langSwitchEN": "EN"
   },
   "aiPool": {
@@ -92,6 +92,8 @@
       "cancelButton": "Cancel"
     }
   },
+  
+  "exportCsvButtonLabel": "Export CSV",
   
   "alerts": {
     "tierRemoveConfirm": "Are you sure you want to remove the last tier? All items in it will become unranked.",
