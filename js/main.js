@@ -4,18 +4,20 @@
  */
 
 // Import from other modules
-import { defaultTiers, settings } from './config.js';
-import { renderAIPool, renderTiers, setupModals, setupAddCustomAI, setupTierControls, setupActionButtons, renderAIItem } from './ui.js';
+import { settings } from './config.js';
+import { renderAIPool, renderTiers as renderUITiers, setupModals, setupAddCustomAI, setupTierControls, setupActionButtons, renderAIItem } from './ui.js';
 import { initDragAndDrop } from './dragDrop.js';
 import { saveState, loadState, clearState, exportAsImage, generateShareableLink, loadFromShareableLink } from './storage.js';
-import { addTier, removeTier, editTier, moveItemToTier } from './tierManagement.js';
-import { setupAIItemClickHandlers, setupEditAIModalHandlers, getAllAIItems } from './aiToolManagement.js';
+// Import only exported functions and alias them
+import { loadTiers, getLoadedTiers, handleAddTier as importedHandleAddTier, removeTier as importedRemoveTier, saveTiersToFile } from './tierManagement.js'; 
+import { setupEditModalListeners, getAllAIItems, showEditAIModal } from './aiToolManagement.js';
+import { exportPlacementsToCSV } from './exportManager.js'; // Import the export function
 
 // Application state
 const state = {
     aiItems: [], // Will be loaded from CSV
     customAIItems: [], // User-added AI items
-    tiers: defaultTiers.map(tier => ({ ...tier, items: [] })), // Initialize tiers with empty items arrays
+    tiers: [], // Tiers will be loaded asynchronously
     onStateChange: null // Will be set to a function that handles state changes
 };
 
@@ -39,6 +41,17 @@ async function init() {
             mergeState(sharedState);
         }
         
+        // Load tiers asynchronously
+        try {
+            await loadTiers(); // Calls the exported async function
+            state.tiers = getLoadedTiers(); // Get the tiers loaded by the module
+            console.log("[main.js] Tiers loaded:", state.tiers);
+        } catch (error) {
+            console.error("[main.js] Error loading tiers:", error);
+            // Handle tier loading failure - maybe load defaults or show error state
+            state.tiers = []; // Ensure it's an empty array on failure
+        }
+        
         // Set up state change handler
         state.onStateChange = handleStateChange;
         
@@ -48,15 +61,20 @@ async function init() {
         // Set up event listeners
         setupEventListeners();
         
-        // Initialize drag and drop
-        const dragDrop = initDragAndDrop(state);
-        dragDrop.setup();
+        // Initialize drag and drop, passing the state
+        const { setup: setupDragDrop } = initDragAndDrop(state); // Pass state here
+        setupDragDrop(); // Setup drag/drop AFTER tiers and items are rendered
+        console.log("[main.js] Drag and drop setup complete.");
         
         // Set up modals
         setupModals();
+        setupEditModalListeners(renderUI); // Setup edit modal listeners
         
-        // Set up edit AI modal handlers
-        setupEditAIModalHandlers(renderUI);
+        // --- Explicitly hide Edit Modal on init as a safeguard ---
+        const editModal = document.getElementById('editAIModal');
+        if (editModal) editModal.style.display = 'none';
+        // ---------
+        
     } catch (error) {
         console.error('Error initializing application:', error);
         alert('There was an error loading the application. Please try refreshing the page.');
@@ -119,7 +137,7 @@ function renderUI() {
     // Render tiers
     const tiersContainer = document.getElementById('tiers-container');
     if (tiersContainer) {
-        renderTiers(state.tiers, tiersContainer);
+        renderUITiers(state.tiers, tiersContainer);
     }
     
     // Populate tier dropzones with AI items
@@ -144,10 +162,12 @@ function populateTierDropzones() {
                 // Find the item data
                 const itemData = [...state.aiItems, ...state.customAIItems].find(item => item.id === itemId);
                 if (itemData) {
+                    console.log('[populateTierDropzones] Found itemData for itemId:', itemId, 'itemData:', itemData, 'itemData.id:', itemData.id);
                     // Create the AI item element
                     const aiElement = document.createElement('div');
                     aiElement.className = 'ai-item';
                     aiElement.setAttribute('draggable', 'true');
+                    console.log('[populateTierDropzones] Setting data-id from itemData.id:', itemData.id);
                     aiElement.setAttribute('data-id', itemData.id);
 
                     const img = document.createElement('img');
@@ -168,11 +188,14 @@ function populateTierDropzones() {
 
 // Set up event listeners for buttons and other interactive elements
 function setupEventListeners() {
+    console.log("[main.js] Setting up event listeners...");
     // Setup Add Custom AI functionality
     setupAddCustomAI(addCustomAI);
     
-    // Setup tier control buttons
-    setupTierControls(handleAddTier, handleRemoveTier);
+    // Setup tier control buttons using the IDs from index.html
+    // Assuming setupTierControls adds listeners to #add-tier-btn and #remove-tier-btn
+    // And those listeners will eventually call the imported functions.
+    setupTierControls(importedHandleAddTier, importedRemoveTier); // Keep passing functions for now
     
     // Setup action buttons
     setupActionButtons({
@@ -181,6 +204,23 @@ function setupEventListeners() {
         exportCallback: exportChart,
         resetCallback: resetChart
     });
+    
+    // Add delegated event listener for clicks on AI items (for modal opening)
+    const mainContainer = document.querySelector('main.container'); // Target the main container
+    if (mainContainer) {
+        mainContainer.addEventListener('click', (event) => {
+            const aiItemElement = event.target.closest('.ai-item');
+            if (aiItemElement && !aiItemElement.classList.contains('dragging')) {
+                const itemId = aiItemElement.dataset.id;
+                if (itemId) {
+                    showEditAIModal(itemId); // Function from aiToolManagement.js
+                }
+            }
+        });
+        console.log("[main.js] Delegated click listener added for .ai-item.");
+    } else {
+        console.error("[main.js] Could not find main.container to attach delegated click listener.");
+    }
 }
 
 // Add a custom AI item
@@ -194,34 +234,8 @@ function addCustomAI(newAI) {
         renderAIItem(newAI, aiPoolContainer);
     }
     
-    // Re-initialize drag and drop for the new item
-    const dragDrop = initDragAndDrop(state);
-    dragDrop.setup();
-    
     // Save state
     handleStateChange(state);
-}
-
-// Handle adding a tier
-function handleAddTier() {
-    // Use the tierManagement module to add a tier
-    const success = addTier(state, renderUI);
-    
-    // Save state if successful
-    if (success) {
-        handleStateChange(state);
-    }
-}
-
-// Handle removing a tier
-function handleRemoveTier() {
-    // Use the tierManagement module to remove a tier
-    const success = removeTier(state, renderUI);
-    
-    // Save state if successful
-    if (success) {
-        handleStateChange(state);
-    }
 }
 
 // Save current state
@@ -278,7 +292,7 @@ function resetChart() {
         
         // Reset to default state
         state.customAIItems = [];
-        state.tiers = defaultTiers.map(tier => ({ ...tier, items: [] }));
+        state.tiers = []; // Reset tiers
         
         // Update UI
         renderUI();
@@ -297,8 +311,35 @@ function handleStateChange(newState) {
 }
 
 // Initialize the application when the DOM is fully loaded
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log("[main.js] DOM fully loaded and parsed");
+
+    // Initialize Language Manager and load default/saved language
+    // await initializeLanguageManager();
+
+    // Initialize tier management (loads tiers and items)
+    // await initializeTiers();
+
+    // Initialize drag and drop functionality AFTER tiers and items are rendered
+    // initializeDragAndDrop();
+
+    // Setup button listeners
+    // setupButtonListeners();
+
+    // --- Add listener for Export CSV button ---
+    const exportCsvButton = document.getElementById('export-csv-button');
+    if (exportCsvButton) {
+        exportCsvButton.addEventListener('click', () => {
+            // Call the imported function directly
+            exportPlacementsToCSV();
+        });
+        console.log("[main.js] Export CSV button listener attached.");
+    } else {
+        console.warn("[main.js] Export CSV button (#export-csv-button) not found.");
+    }
+    // --- End Export CSV button listener ---
+
     init();
-    // Setup delegated click handlers once after initial load
-    setupAIItemClickHandlers(); 
+
+    console.log("[main.js] Initialization complete.");
 });

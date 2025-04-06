@@ -3,15 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/modal-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <title>小赫的AI星辰榜</title>
-    <link rel="stylesheet" href="styles.css">
-    <!-- Consider adding a futuristic font from Google Fonts, e.g., Orbitron or Russo One -->
+    <!-- Include marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
         <h1><span class="star-icon">✨</span> 小赫的AI星辰榜 <span class="star-icon">✨</span></h1>
         <p>為你的 AI 工具們評定星級！</p>
+        <div class="controls">
+            <!-- Language Switch -->
+            <div class="language-switch">
+                <button id="lang-zh-btn" class="lang-btn active-lang" data-lang="zh">中</button>
+                <button id="lang-en-btn" class="lang-btn" data-lang="en">EN</button>
+            </div>
+        </div>
     </header>
 
     <main class="container">
@@ -29,31 +39,21 @@
         </section>
 
         <section id="star-tier-division" class="tier-list">
-            <h2><span class="icon">🌟</span> 星級劃分 (Tiers)</h2>
-            <div id="tiers-container">
-                <!-- Tiers will be generated here by JavaScript -->
-                <!-- Example structure: -->
-                <!-- <div class="tier-row" data-tier="S">
-                    <div class="tier-label-container">
-                         <span class="tier-label" style="background-color: #ff7979;">S</span>
-                         <input type="text" class="tier-name-input" value="恆星級" style="display:none;">
-                         <button class="edit-tier-btn">✏️</button>
-                         <input type="color" class="tier-color-picker" value="#ff7979" style="display:none;">
-                    </div>
-                    <div class="tier-dropzone"></div>
-                </div> -->
+            <h2 data-translate="aiToolTierListTitle">AI Tool Tier List</h2>
+            <div id="tier-list-container">
+                <!-- Tiers will be loaded here by tierManagement.js -->
             </div>
-             <div class="tier-controls">
-                 <button id="add-tier-btn" class="btn-secondary"><span class="icon">➕</span> 新增層級</button>
-                 <button id="remove-tier-btn" class="btn-secondary"><span class="icon">➖</span> 移除層級</button>
+            <div class="tier-controls">
+                <button id="add-tier-btn" class="btn-secondary"><span class="icon">➕</span> 新增層級</button>
+                <button id="remove-tier-btn" class="btn-secondary"><span class="icon">➖</span> 移除層級</button>
             </div>
         </section>
 
         <section id="controls" class="action-buttons">
-             <button id="save-chart-btn" class="btn-primary"><span class="icon">💾</span> 封存星圖 (Save)</button>
-             <button id="share-chart-btn" class="btn-primary"><span class="icon">🔗</span> 分享星軌 (Share)</button>
-             <button id="export-image-btn" class="btn-primary"><span class="icon">🖼️</span> 匯出圖片 (Export)</button>
-             <button id="reset-chart-btn" class="btn-danger"><span class="icon">🔄</span> 重設榜單 (Reset)</button>
+            <button id="save-chart-btn" class="btn-primary"><span class="icon">💾</span> 封存星圖 (Save)</button>
+            <button id="share-chart-btn" class="btn-primary"><span class="icon">🔗</span> 分享星軌 (Share)</button>
+            <button id="export-csv-button" class="btn-primary"><span class="icon">📄</span> <span data-lang-key="exportCsvButtonLabel">Export Placements (CSV)</span></button>
+            <button id="reset-chart-btn" class="btn-danger"><span class="icon">🔄</span> 重設榜單 (Reset)</button>
         </section>
     </main>
 
@@ -74,26 +74,97 @@
         </div>
     </div>
     
-    <!-- Modal for editing AI tool -->
-    <div id="edit-ai-modal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <span class="close-btn">&times;</span>
-            <h3>編輯 AI 工具</h3>
-            <input type="hidden" id="edit-ai-id">
-            <label for="edit-ai-name">名稱:</label>
-            <input type="text" id="edit-ai-name" name="edit-ai-name"><br><br>
-            <label for="edit-ai-icon">圖標 URL (可選):</label>
-            <input type="text" id="edit-ai-icon" name="edit-ai-icon"><br><br>
-            <label for="edit-ai-description">描述 (可選):</label>
-            <textarea id="edit-ai-description" name="edit-ai-description" rows="3"></textarea><br><br>
-            <div class="modal-buttons">
-                <button id="confirm-edit-ai-btn" class="btn-primary">保存更改</button>
-                <button id="cancel-edit-ai-btn" class="btn-secondary">取消</button>
+    <!-- Edit AI Item Modal -->
+    <div id="editAIModal" class="modal">
+        <div class="modal-content edit-modal-content"> 
+            <span class="close-button" id="closeEditModal">&times;</span>
+            <h2>Edit AI Tool</h2>
+
+            <!-- Moved Language Switch to Top -->
+            <div class="language-switch" style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #444;">
+                <label style="margin-bottom: 0; margin-right: 10px;">Display Language:</label>
+                <button type="button" id="langSwitchEN" class="lang-button">EN</button>
+                <button type="button" id="langSwitchZH" class="lang-button active">ZH</button> 
             </div>
+
+            <form id="editAIForm">
+                <input type="hidden" id="editItemId">
+                
+                <!-- Bilingual Name -->
+                <!-- Edit Mode Name Inputs -->
+                <div class="form-field-group edit-mode-element"> 
+                    <div id="nameENContainer">
+                        <label for="editItemNameEN">Name (English):</label>
+                        <input type="text" id="editItemNameEN" required>
+                    </div>
+                    <div id="nameZHContainer">
+                        <label for="editItemNameZH">AI工具名稱：</label>
+                        <input type="text" id="editItemNameZH" required>
+                    </div>
+                </div>
+                <!-- Read Only Name/Icon Display - Label/Value Pairs -->
+                <div class="read-only-section read-only-element">
+                    <!-- Chinese Name Pair -->
+                    <div id="readOnlyPairZH" class="read-only-pair">
+                        <label>AI工具名稱：</label>
+                        <div class="value-container">
+                            <span id="displayNameZH"></span>
+                        </div>
+                    </div>
+                    <!-- English Name Pair -->
+                    <div id="readOnlyPairEN" class="read-only-pair">
+                        <label>Tool Name:</label>
+                        <div class="value-container">
+                            <span id="displayNameEN"></span>
+                        </div>
+                    </div>
+                    <!-- Icon URL Pair -->
+                    <div id="readOnlyPairIcon" class="read-only-pair">
+                        <label>Icon</label>
+                        <div class="value-container">
+                            <span id="displayIconURL"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Icon -->
+                <div class="form-field-group edit-mode-element">
+                    <label for="editItemIcon">圖示</label>
+                    <input type="url" id="editItemIcon">
+                </div>
+
+                <!-- Description Fields (Inputs hidden in read-only mode) -->
+                <div id="descriptionFields" class="edit-mode-element"> 
+                    <div class="description-field edit-mode-element" id="descENContainer">
+                        <label for="editItemDescriptionEN">Tool Description</label>
+                        <textarea id="editItemDescriptionEN" rows="5"></textarea>
+                    </div>
+                    <div class="description-field edit-mode-element" id="descZHContainer"> 
+                        <label for="editItemDescriptionZH">工具簡介編輯</label>
+                        <textarea id="editItemDescriptionZH" rows="5"></textarea>
+                    </div>
+                </div>
+
+                <!-- Markdown Preview (Always visible, but content updates) -->
+                <div class="markdown-preview-container">
+                    <label>工具簡介</label> 
+                    <div id="markdownPreview" class="markdown-preview"></div>
+                </div>
+
+                <!-- Modal Actions -->
+                <div class="modal-actions">
+                    <button type="button" id="editModeBtn" class="btn-secondary read-only-element">Edit</button> 
+                    <button type="submit" class="btn-primary edit-mode-element">Save Changes</button>
+                    <button type="button" id="cancelEdit" class="btn-secondary edit-mode-element">Cancel</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <!-- Load JavaScript modules -->
+    <script type="module" src="js/languageManager.js"></script>
+    <script type="module" src="js/exportManager.js"></script> <!-- Ensure this is type module -->
     <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/tierManagement.js"></script>
 </body>
 </html>

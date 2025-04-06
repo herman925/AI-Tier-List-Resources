@@ -3,35 +3,6 @@
  * Contains configuration data for the AI Star Chart application
  */
 
-// Default tier configuration
-export const defaultTiers = [
-    {
-        id: 'S',
-        name: '恆星級',
-        color: '#ff7979'
-    },
-    {
-        id: 'A',
-        name: '行星級',
-        color: '#ffbe76'
-    },
-    {
-        id: 'B',
-        name: '衛星級',
-        color: '#f6e58d'
-    },
-    {
-        id: 'C',
-        name: '彗星級',
-        color: '#7ed6df'
-    },
-    {
-        id: 'D',
-        name: '隕石級',
-        color: '#dff9fb'
-    }
-];
-
 // Application settings
 export const settings = {
     appName: '小赫的AI星辰榜',

@@ -1,0 +1,30 @@
+{
+  "appName": "AI 等級列表製作器",
+  "language": "語言",
+  "searchPlaceholder": "搜索 AI 工具...",
+  "unrankedItemsTitle": "未分級工具",
+  "tierListSectionTitle": "等級列表",
+  "manageTiersTitle": "管理等級",
+  "aiToolTierListTitle": "AI 工具等級列表",
+
+  "tierIdLabel": "等級 ID",
+  "tierNameZhLabel": "等級名稱 (中)",
+  "tierNameEnLabel": "等級名稱 (英)",
+  "tierColorLabel": "顏色",
+  "addTierButton": "新增等級",
+  "saveTiersButton": "儲存等級",
+  "loadTiersButton": "載入等級",
+
+  "editModalTitle": "編輯 AI 工具詳細信息",
+  "modalNameZhLabel": "名稱 (中)",
+  "modalNameEnLabel": "名稱 (英)",
+  "modalIconUrlLabel": "圖標 URL",
+  "modalDescriptionZhLabel": "描述 (中)",
+  "modalDescriptionEnLabel": "描述 (英)",
+  "modalSaveChanges": "儲存變更",
+  "modalCancel": "取消",
+
+  "exportCsvButtonLabel": "匯出位置 (CSV)",
+  "alertNoItemsToExport": "未在層級或工具池中找到可匯出的項目。",
+  "alertExportNotAvailable": "匯出功能目前不可用。請稍後再試。"
+}

@@ -10,14 +10,17 @@ export function renderAIItem(item, container) {
     const aiElement = document.createElement('div');
     aiElement.className = 'ai-item';
     aiElement.setAttribute('draggable', 'true');
+    
+    // --- Debug log before setting data-id --- 
+    console.log('[renderAIItem] Setting data-id for item:', item, 'item.id:', item.id);
     aiElement.setAttribute('data-id', item.id);
     
     const img = document.createElement('img');
     img.src = item.icon || settings.defaultIconUrl;
-    img.alt = `${item.name} Logo`;
+    img.alt = `${item.name_zh || item.name || 'AI Tool'} Logo`; // Use name_zh, fallback to name, then generic
     
     const name = document.createElement('span');
-    name.textContent = item.name;
+    name.textContent = item.name_zh || item.name || item.id; // Display name_zh, fallback to old name, then ID
     
     aiElement.appendChild(img);
     aiElement.appendChild(name);
@@ -236,6 +239,98 @@ export function setupActionButtons({
     if (resetBtn && typeof resetCallback === 'function') {
         resetBtn.addEventListener('click', resetCallback);
     }
+}
+
+// Function to setup event listeners specific to the Edit AI Modal
+export function setupEditModalListeners() {
+    const modal = document.getElementById('editAIModal');
+    if (!modal) return; // Only proceed if modal exists
+
+    const langSwitchEN = document.getElementById('langSwitchEN');
+    const langSwitchZH = document.getElementById('langSwitchZH');
+    const descENContainer = document.getElementById('descENContainer');
+    const descZHContainer = document.getElementById('descZHContainer');
+    const descENTextarea = document.getElementById('editItemDescriptionEN');
+    const descZHTextarea = document.getElementById('editItemDescriptionZH');
+    const markdownPreview = document.getElementById('markdownPreview');
+
+    // Check if all elements exist
+    if (!langSwitchEN || !langSwitchZH || !descENContainer || !descZHContainer || !descENTextarea || !descZHTextarea || !markdownPreview) {
+        console.error('[setupEditModalListeners] Missing one or more elements for edit modal interactions.');
+        return;
+    }
+    
+    // Helper function to update markdown preview
+    const updatePreview = (text) => {
+        console.log(`[updatePreview] Called with text: "${text}"`);
+        if (typeof marked !== 'undefined') {
+            const parsedHtml = marked.parse(text || '');
+            console.log(`[updatePreview] Parsed HTML: "${parsedHtml}"`); // Log the result
+            markdownPreview.innerHTML = parsedHtml;
+        } else {
+            console.warn('[updatePreview] marked.js not loaded.');
+            markdownPreview.innerHTML = '<p><em>Markdown preview unavailable.</em></p>';
+        }
+    };
+
+    // Language switch logic
+    langSwitchEN.addEventListener('click', () => {
+        langSwitchEN.classList.add('active');
+        langSwitchZH.classList.remove('active');
+        descENContainer.style.display = 'block';
+        descZHContainer.style.display = 'none';
+        updatePreview(descENTextarea.value);
+    });
+
+    langSwitchZH.addEventListener('click', () => {
+        langSwitchZH.classList.add('active');
+        langSwitchEN.classList.remove('active');
+        descZHContainer.style.display = 'block';
+        descENContainer.style.display = 'none';
+        updatePreview(descZHTextarea.value);
+    });
+
+    // Real-time preview update on textarea input
+    descENTextarea.addEventListener('input', () => {
+        // Only update if this textarea is currently visible
+        if (descENContainer.style.display === 'block') {
+            updatePreview(descENTextarea.value);
+        }
+    });
+
+    descZHTextarea.addEventListener('input', () => {
+        // Only update if this textarea is currently visible
+        if (descZHContainer.style.display === 'block') {
+            updatePreview(descZHTextarea.value);
+        }
+    });
+    
+    // Add listener for the Cancel button
+    const cancelBtn = document.getElementById('cancelEdit');
+    if(cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            modal.style.display = 'none'; // Simply hide the modal
+        });
+    }
+
+    // Add listener for the main close button (top right 'x')
+    const closeBtn = document.getElementById('closeEditModal');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none'; // Simply hide the modal
+        });
+    }
+
+    // --- Prevent closing when clicking inside the modal content ---
+    const modalContent = modal.querySelector('.modal-content');
+    if (modalContent) {
+        modalContent.addEventListener('click', (event) => {
+            event.stopPropagation(); // Stop click from reaching the modal background
+        });
+    }
+    // ---------
+
+    console.log('[setupEditModalListeners] Edit modal listeners attached.');
 }
 
 // Helper function to determine text color (black or white) based on background color

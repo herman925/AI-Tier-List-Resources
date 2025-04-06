@@ -1,16 +1,16 @@
-ufeffid,name,icon,description
-AI001,ChatGPT-4,https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg,OpenAI 的最先進大型語言模型，具有強大的理解和生成能力。
-AI002,Claude 3,,Anthropic 開發的對話式 AI 助手，專注於安全和有幫助的回應。
-AI003,Midjourney,,一個 AI 圖像生成工具，可以根據文字描述創建藝術圖像。
-AI004,Stable Diffusion,,開源的 AI 圖像生成模型，可以在本地運行。
-AI005,Gemini,,Google 的多模態 AI 模型，可以處理文本、圖像和其他類型的數據。
-AI006,DALL-E,,OpenAI 的 AI 圖像生成系統，可以根據文字描述創建逼真的圖像。
-AI007,GPT-3.5,,OpenAI 的大型語言模型，ChatGPT 的前身版本。
-AI008,Llama 3,,Meta 的開源大型語言模型，可以在本地運行。
-AI009,Mistral AI,,法國初創公司開發的高效能開源大型語言模型。
-AI010,Perplexity,,基於 AI 的搜索引擎，提供有來源的回答。
-AI011,GitHub Copilot,,由 OpenAI Codex 驅動的 AI 編程助手，幫助開發者編寫代碼。
-AI012,Bard,,Google 的對話式 AI 助手，後來更名為 Gemini。
-AI013,Cascade,,Codeium 開發的 AI 編程助手，專注於代碼生成和問題解決。
-AI014,Codeium,,免費的 AI 編程助手，提供代碼補全和建議。
-AI015,Hugging Face,,AI 社區和模型庫，提供開源的 AI 模型和工具。
+id,name_zh,name_en,icon,description_zh,description_en
+AI001,ChatGPT-4o,ChatGPT-4o,https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg,#OpenAI 的最先進大型語言模型，具有強大的理解和生成能力.,OpenAI's most advanced large language model, with powerful understanding and generation capabilities.
+AI002,Claude 3.7 Sonnet,Claude 3.7 Sonnet,https://cdn.prod.website-files.com/655e058eaec6a02b8b6e3fb9/66d72e28e9420299c95e6780_claude.png,Anthropic 開發的對話式 AI 助手，專注於安全和有幫助的回應.,Conversational AI assistant developed by Anthropic, focusing on safe and helpful responses.
+AI003,Midjourney,Midjourney,https://upload.wikimedia.org/wikipedia/commons/1/10/Midjourney_Emblem_%E2%80%94_Discord.svg,一個 AI 圖像生成工具，可以根據文字描述創建藝術圖像.,An AI image generation tool that creates artistic images from text descriptions.
+AI004,Stable Diffusion,Stable Diffusion,,開源的 AI 圖像生成模型，可以在本地運行.,Open-source AI image generation model that can run locally.
+AI005,Gemini,Gemini,,Google 的多模態 AI 模型，可以處理文本、圖像和其他類型的數據.,Google's multimodal AI model that can process text, images, and other data types.
+AI006,DALL-E,DALL-E,,OpenAI 的 AI 圖像生成系統，可以根據文字描述創建逼真的圖像.,OpenAI's AI image generation system that creates realistic images from text descriptions.
+AI007,GPT-3.5,GPT-3.5,,OpenAI 的大型語言模型，ChatGPT 的前身版本.,OpenAI's large language model, the predecessor version of ChatGPT.
+AI008,Llama 3,Llama 3,,Meta 的開源大型語言模型，可以在本地運行.,Meta's open-source large language model that can run locally.
+AI009,Mistral AI,Mistral AI,,法國初創公司開發的高效能開源大型語言模型.,High-performance open-source large language model developed by a French startup.
+AI010,Perplexity,Perplexity,,基於 AI 的搜索引擎，提供有來源的回答.,AI-based search engine that provides answers with sources.
+AI011,GitHub Copilot,GitHub Copilot,,由 OpenAI Codex 驅動的 AI 編程助手，幫助開發者編寫代碼.,AI programming assistant powered by OpenAI Codex, helping developers write code.
+AI012,Bard,Bard,,Google 的對話式 AI 助手，後來更名為 Gemini.,Google's conversational AI assistant, later renamed Gemini.
+AI013,Cascade,Cascade,,Codeium 開發的 AI 編程助手，專注於代碼生成和問題解決.,AI programming assistant developed by Codeium, focusing on code generation and problem-solving.
+AI014,Codeium,Codeium,,免費的 AI 編程助手，提供代碼補全和建議.,Free AI programming assistant providing code completion and suggestions.
+AI015,Hugging Face,Hugging Face,,AI 社區和模型庫，提供開源的 AI 模型和工具.,AI community and model hub providing open-source AI models and tools.

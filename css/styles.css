@@ -72,6 +72,39 @@ header p {
     font-size: 1.1rem;
 }
 
+header .controls {
+    display: flex; /* Align controls horizontally */
+    align-items: center; /* Center items vertically */
+    gap: 15px; /* Space between control groups */
+}
+
+.language-switch {
+    display: flex;
+    gap: 5px; /* Space between language buttons */
+}
+
+.lang-btn {
+    padding: 5px 10px;
+    border: 1px solid var(--tertiary-bg);
+    background-color: var(--secondary-bg);
+    color: var(--primary-text);
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.9em;
+    transition: background-color 0.2s ease;
+}
+
+.lang-btn:hover {
+    background-color: var(--tertiary-bg);
+}
+
+.lang-btn.active-lang {
+    background-color: var(--accent-color-1);
+    color: #fff; /* White text on primary color */
+    border-color: var(--accent-color-1);
+    font-weight: bold;
+}
+
 footer {
     text-align: center;
     padding: 1.5rem;
@@ -145,72 +178,106 @@ section h2 {
 
 .tier-row {
     display: flex;
-    align-items: stretch; /* Make sure dropzone fills height */
+    align-items: stretch; /* MUST be stretch */
     background-color: var(--tertiary-bg);
     border-radius: 4px;
     overflow: hidden; /* Contain children */
     min-height: 60px;
+    margin-bottom: 0.5rem; /* Add space between tier rows */
 }
 
 .tier-label-container {
     display: flex;
     align-items: center;
-    padding: 0.5rem 1rem;
-    background-color: grey; /* Default, will be overridden */
-    min-width: 150px; /* Adjust as needed */
     font-weight: bold;
     position: relative; /* For positioning controls */
+    border-right: 2px solid var(--secondary-bg); /* Separator */
+    flex-grow: 0; /* Explicitly prevent growing */
+    flex-basis: 60px; /* Reduced width for the label container */
+    flex-shrink: 0; /* Prevent shrinking */
+    align-self: stretch; /* Make label container take full height of row */
 }
 
 .tier-label {
-    flex-grow: 1;
-    text-align: center;
+    display: flex;
+    justify-content: center; /* Center text horizontally */
+    align-items: center; /* Center text vertically */
     color: #fff;
+    font-weight: bold; /* Ensure font-weight is here */
     text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    padding: 0.5rem; /* Ensure label itself has some padding */
 }
 
-.tier-dropzone {
-    flex-grow: 1;
+.tier-items { /* This is the dropzone */
+    flex-grow: 1; /* Take remaining space */
     padding: 0.5rem;
-    background-color: rgba(0, 0, 0, 0.2);
-    border-left: 2px solid var(--primary-bg);
-    min-height: 50px; /* Ensure dropzone is visible */
+    min-height: 80px; /* Ensure dropzone is visible */
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
     align-items: center;
+    background-color: rgba(0, 0, 0, 0.1); /* Subtle dark background for item area */
 }
 
 /* Example AI Item Styling */
 .ai-item {
     background-color: var(--tertiary-bg);
     color: var(--primary-text);
-    padding: 0.5rem;
+    padding: 0; /* Remove padding, image will fill */
     border-radius: 4px;
-    text-align: center;
+    /* text-align: center; */ /* Span will handle text alignment */
     cursor: grab;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     border: 1px solid var(--secondary-bg);
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.3rem;
-    font-size: 0.8rem;
-    width: var(--ai-item-size); /* Fixed width */
-    height: var(--ai-item-size); /* Fixed height */
-    justify-content: space-between; /* Space between icon and text */
+    /* flex-direction: column; */ /* No longer strictly needed */
+    /* align-items: center; */ /* No longer strictly needed */
+    /* gap: 0.3rem; */ /* Removed gap */
+    /* font-size: 0.8rem; */ /* Span will have its own size */
+    width: var(--ai-item-size);
+    height: var(--ai-item-size);
+    /* justify-content: space-between; */ /* Removed */
+    position: relative; /* Added for absolute positioning of children */
+    overflow: hidden; /* Added to clip content */
 }
 
 .ai-item:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 10px var(--accent-color-2);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* Add dragging class styles */
+.ai-item.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
 }
 
 .ai-item img {
-    width: var(--ai-icon-size);
-    height: var(--ai-icon-size);
-    object-fit: contain;
-    margin-bottom: 0.2rem;
+    display: block; /* Remove extra space below image */
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Or cover, ensures image fills container */
+    border-radius: 4px; /* Match parent rounding if needed */
+}
+
+.ai-item span {
+    position: absolute;
+    top: 50%; /* Start overlay from vertical middle */
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black */
+    color: white; /* White text for contrast */
+    padding: 0.3rem;
+    text-align: center;
+    font-size: 0.75rem; /* Smaller font size for overlay */
+    line-height: 1.2; /* Allow wrapping */
+    height: 50%; /* Ensure it fills the bottom half */
+    overflow: hidden; /* Hide overflow */
+    word-wrap: break-word; /* Allow long words to break */
+    box-sizing: border-box; /* Include padding in height calculation */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 /* Buttons */
@@ -262,12 +329,13 @@ button {
 .tier-controls {
     margin-top: 1rem;
     display: flex;
+    justify-content: center;
     gap: 0.5rem;
 }
 
 /* Basic Modal Styling (Hidden by default) */
 .modal {
-    display: none;
+    display: none; /* Hidden by default */
     position: fixed; /* Stay in place */
     z-index: 100; /* Sit on top */
     left: 0;
@@ -308,114 +376,6 @@ button {
     text-decoration: none;
 }
 
-/* Edit AI Modal Styles */
-.edit-ai-modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    justify-content: center;
-    align-items: center;
-}
-
-.edit-ai-modal-content {
-    background-color: #1a1a2e;
-    border-radius: 10px;
-    padding: 20px;
-    width: 80%;
-    max-width: 500px;
-    box-shadow: 0 0 20px rgba(0, 100, 255, 0.5);
-    border: 1px solid #3a3a6e;
-    position: relative;
-    animation: modalFadeIn 0.3s ease-out;
-}
-
-@keyframes modalFadeIn {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.edit-ai-modal h3 {
-    margin-top: 0;
-    color: #4a9fff;
-    font-family: var(--font-title);
-    text-align: center;
-}
-
-.edit-ai-modal label {
-    display: block;
-    margin-bottom: 5px;
-    color: #bbb;
-}
-
-.edit-ai-modal input[type="text"],
-.edit-ai-modal textarea {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 15px;
-    background-color: #2a2a4e;
-    border: 1px solid #3a3a6e;
-    border-radius: 5px;
-    color: #fff;
-    box-sizing: border-box;
-}
-
-.edit-ai-modal input[type="text"]:focus,
-.edit-ai-modal textarea:focus {
-    border-color: #4a9fff;
-    outline: none;
-    box-shadow: 0 0 5px rgba(74, 159, 255, 0.5);
-}
-
-.edit-ai-modal-buttons {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
-}
-
-.edit-ai-modal .btn-primary {
-    background-color: #4a9fff;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s;
-}
-
-.edit-ai-modal .btn-primary:hover {
-    background-color: #3a8fee;
-}
-
-.edit-ai-modal .btn-secondary {
-    background-color: #3a3a6e;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s;
-}
-
-.edit-ai-modal .btn-secondary:hover {
-    background-color: #4a4a8e;
-}
-
-/* Utility Classes */
-.icon {
-    font-size: 1.2em; /* Make icons slightly larger */
-}
-
-.star-icon {
-     color: var(--accent-color-1);
-}
-
 /* Dragging styles (will be refined in JS) */
 .dragging {
     opacity: 0.5;
@@ -446,3 +406,37 @@ button {
         grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
     }
 }
+
+/* Edit AI Modal Specific Styles --> MOVED TO css/modal-styles.css */
+/* #editAIModal { ... } */
+
+/* Style for the container holding the AI items pool */
+#ai-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); /* Responsive grid */
+    gap: 10px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.1); /* Subtle background */
+    border-radius: var(--border-radius-small);
+    border: 1px dashed var(--border-color-light);
+    max-height: 60vh; /* Limit height to 60% of viewport height */
+    overflow-y: auto; /* Add vertical scrollbar if content overflows */
+}
+
+/* Tier List Specific Styles */
+.tier-list {
+    /* Styles for the tier list section */
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Container for Add/Remove Tier buttons */
+.tier-controls {
+    margin-top: 15px; /* Space above the buttons */
+    display: flex; /* Use flexbox for alignment */
+    justify-content: center; /* Center buttons horizontally */
+    gap: 10px; /* Space between buttons */
+}
+
+/* Individual Tier Row */

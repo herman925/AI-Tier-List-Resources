@@ -1,0 +1,30 @@
+{
+  "appName": "AI Tier List Maker",
+  "language": "Language",
+  "searchPlaceholder": "Search AI tools...",
+  "unrankedItemsTitle": "Unranked Tools",
+  "tierListSectionTitle": "Tier List", 
+  "manageTiersTitle": "Manage Tiers",
+  "aiToolTierListTitle": "AI Tool Tier List",
+
+  "tierIdLabel": "Tier ID",
+  "tierNameZhLabel": "Tier Name (ZH)",
+  "tierNameEnLabel": "Tier Name (EN)",
+  "tierColorLabel": "Color",
+  "addTierButton": "Add Tier",
+  "saveTiersButton": "Save Tiers",
+  "loadTiersButton": "Load Tiers",
+
+  "editModalTitle": "Edit AI Tool Details",
+  "modalNameZhLabel": "Name (ZH)",
+  "modalNameEnLabel": "Name (EN)",
+  "modalIconUrlLabel": "Icon URL",
+  "modalDescriptionZhLabel": "Description (ZH)",
+  "modalDescriptionEnLabel": "Description (EN)",
+  "modalSaveChanges": "Save Changes",
+  "modalCancel": "Cancel",
+
+  "exportCsvButtonLabel": "Export Placements (CSV)",
+  "alertNoItemsToExport": "No items found in tiers or the pool to export.",
+  "alertExportNotAvailable": "Export functionality is currently unavailable. Please try again later."
+}

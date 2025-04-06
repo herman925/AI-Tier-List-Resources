@@ -1,0 +1,317 @@
+/* CSS styles specifically for the Edit AI Modal */
+
+/* === Modal Styles === */
+
+#editAIModal {
+    display: none; /* JS will handle showing */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    /* Use primary background with slightly less opacity */
+    background-color: rgba(10, 10, 26, 0.8); /* Slightly less opaque than 0.7 */
+    justify-content: center;
+    align-items: center;
+    font-family: var(--font-main); /* Use main font */
+}
+
+.edit-modal-content {
+    width: 60%; 
+    max-width: 800px; 
+    background: var(--secondary-bg); /* Match section background */
+    color: var(--primary-text); /* Use primary text color */
+    border-radius: 12px;
+    padding: 30px;
+    border: 1px solid var(--tertiary-bg); /* Match section border */
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); /* Darker shadow */
+    position: relative; /* Needed for close button positioning */
+}
+
+.edit-modal-content h2 {
+    font-family: var(--font-title); /* Use title font */
+    color: var(--accent-color-2); /* Match section title color */
+    margin-bottom: 25px;
+    text-align: center;
+    border-bottom: 1px solid var(--tertiary-bg);
+    padding-bottom: 15px;
+}
+
+.close-btn {
+    color: var(--secondary-text);
+    position: absolute;
+    top: 15px; /* Adjusted positioning */
+    right: 20px;
+    font-size: 1.8rem; /* Slightly larger */
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1; /* Prevent extra spacing */
+    transition: color 0.2s ease;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: var(--primary-text);
+    text-decoration: none;
+}
+
+.edit-modal-content label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--secondary-text); /* Match secondary text color */
+    font-weight: bold;
+}
+
+/* Inputs and Textareas */
+.edit-modal-content input[type="text"],
+.edit-modal-content input[type="url"],
+.edit-modal-content textarea {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid var(--tertiary-bg); /* Use tertiary bg for border */
+    background-color: var(--primary-bg); /* Use primary bg for input */
+    color: var(--primary-text);
+    border-radius: 6px;
+    box-sizing: border-box; 
+    font-family: var(--font-main); /* Ensure consistent font */
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.edit-modal-content input[type="text"]:focus,
+.edit-modal-content input[type="url"]:focus,
+.edit-modal-content textarea:focus {
+    border-color: var(--accent-color-2);
+    outline: none;
+    box-shadow: 0 0 8px rgba(102, 204, 255, 0.4); /* Use accent color for focus glow */
+}
+
+.edit-modal-content textarea {
+    resize: vertical; 
+    min-height: 80px; /* Minimum height for textareas */
+}
+
+/* Language Switch */
+.language-switch {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Add gap between buttons */
+}
+
+/* Remove label for language switch - buttons are clear */
+/* .language-switch label { */
+/*     margin-bottom: 0; */ 
+/*     margin-right: 15px; */
+/* } */
+
+.lang-button {
+    background-color: var(--tertiary-bg);
+    color: var(--secondary-text);
+    border: 1px solid var(--secondary-bg);
+    padding: 8px 15px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    font-weight: bold;
+}
+
+.lang-button.active {
+    background-color: var(--accent-color-2);
+    color: var(--primary-bg);
+    border-color: var(--accent-color-2);
+}
+
+.lang-button:hover:not(.active) {
+    background-color: var(--secondary-bg);
+    color: var(--primary-text);
+}
+
+/* Description Fields */
+.description-field {
+    margin-bottom: 20px;
+}
+
+/* --- Read-Only / Edit Mode Visibility Control --- */
+.modal-content[data-mode="read-only"] .edit-mode-element {
+    display: none !important; /* Ensure edit fields/buttons are hidden */
+}
+
+.modal-content[data-mode="edit"] .read-only-element {
+    display: none !important; /* Ensure read-only spans/button are hidden */
+}
+
+/* Explicitly show edit elements when in edit mode */
+.modal-content[data-mode="edit"] .form-field-group.edit-mode-element,
+.modal-content[data-mode="edit"] .description-field.edit-mode-element {
+    display: block !important; 
+}
+
+.modal-content[data-mode="edit"] .modal-actions .edit-mode-element {
+    display: inline-block !important; /* Show Save/Cancel buttons */
+}
+
+/* --- Consistent Styling for Read-Only Info and Markdown Preview Boxes --- */
+.markdown-preview { /* Apply same style to both */
+    padding: 15px;
+    background-color: var(--primary-bg); /* Use theme variable */
+    border: 1px dashed var(--tertiary-bg); /* Use theme variable and style */
+    border-radius: 6px; /* Match previous preview style */
+    color: var(--primary-text); /* Ensure text color matches theme */
+    margin-top: 5px; /* Space between labels and the box */
+}
+
+/* Container for each individual read-only value (the grey box) */
+.value-container {
+    background-color: var(--primary-bg);
+    border: 1px dashed var(--tertiary-bg); /* Use theme variable and style */
+    border-radius: 0.25rem;
+    padding: 0.5rem 0.75rem;
+    margin-top: 3px; /* Small space between label and its value box */
+}
+
+/* Add space below each label/value pair */
+.read-only-pair {
+    margin-bottom: 15px; /* Adjust as needed */
+}
+
+/* Language-specific visibility rules */
+/* Hide EN elements when ZH is selected */
+.modal-content[data-language="zh"] #nameENContainer,       /* Edit mode input */
+.modal-content[data-language="zh"] #descENContainer,       /* Edit mode textarea */
+.modal-content[data-language="zh"] #readOnlyPairEN         /* Read mode EN Pair */
+{
+    display: none !important;
+}
+
+/* Hide ZH elements when EN is selected */
+.modal-content[data-language="en"] #nameZHContainer,       /* Edit mode input */
+.modal-content[data-language="en"] #descZHContainer,       /* Edit mode textarea */
+.modal-content[data-language="en"] #readOnlyPairZH         /* Read mode ZH Pair */
+{
+    display: none !important;
+}
+
+/* --- Markdown Preview --- */
+.markdown-preview-container {
+    margin-top: 15px; /* Keep margin for spacing */
+}
+
+.markdown-preview {
+    margin-top: 5px; /* Space between label and preview box */
+}
+
+/* Markdown Elements Styling (Inherit where possible, override specific) */
+.markdown-preview h1,
+.markdown-preview h2,
+.markdown-preview h3,
+.markdown-preview h4,
+.markdown-preview h5,
+.markdown-preview h6 {
+    font-family: var(--font-title); /* Use title font */
+    color: var(--accent-color-2); 
+    border-bottom: 1px solid var(--tertiary-bg);
+    padding-bottom: 5px;
+    margin-top: 1.2em;
+    margin-bottom: 0.6em;
+}
+
+.markdown-preview p {
+    margin-bottom: 1em;
+}
+
+.markdown-preview code {
+    background-color: var(--tertiary-bg); /* Use tertiary for code blocks */
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+    color: var(--accent-color-1); /* Use accent color for inline code */
+}
+
+.markdown-preview pre {
+    background-color: var(--primary-bg); /* Darker background for pre blocks */
+    border: 1px solid var(--tertiary-bg);
+    padding: 10px;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin-bottom: 1em;
+}
+
+.markdown-preview pre code {
+    background-color: transparent; /* Code inside pre shouldn't have its own bg */
+    padding: 0;
+    color: var(--primary-text); /* Regular text color for block code */
+}
+
+.markdown-preview ul,
+.markdown-preview ol {
+    padding-left: 25px;
+    margin-bottom: 1em;
+}
+
+.markdown-preview a {
+    color: var(--accent-color-2); 
+    text-decoration: none;
+}
+
+.markdown-preview a:hover {
+    text-decoration: underline;
+}
+
+/* Modal Actions / Footer */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end; 
+    gap: 10px; /* Add gap between buttons */
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid var(--tertiary-bg);
+}
+
+/* General button styling within modal actions */
+.modal-actions button {
+    padding: 10px 20px; /* Slightly adjusted padding */
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    font-family: var(--font-main);
+}
+
+.modal-actions button:active {
+    transform: translateY(1px);
+}
+
+/* Specific button types - match main styles */
+.modal-actions .btn-primary {
+    background-color: var(--accent-color-2);
+    color: var(--primary-bg);
+}
+
+.modal-actions .btn-primary:hover {
+    background-color: #88d8ff; /* Lighter hover */
+}
+
+.modal-actions .btn-secondary {
+    background-color: var(--tertiary-bg);
+    color: var(--primary-text);
+    border: 1px solid var(--secondary-text);
+}
+
+.modal-actions .btn-secondary:hover {
+    background-color: var(--secondary-bg);
+    border-color: var(--primary-text);
+}
+
+/* Add styles for the new 'Edit' button if needed, */
+/* maybe use btn-secondary style? Or a new one? */
+/* Example: */
+/* .modal-actions .btn-edit { */
+/*    background-color: var(--accent-color-1); */
+/*    color: var(--primary-bg); */
+/* } */
+/* .modal-actions .btn-edit:hover { */
+/*    background-color: #ffdd99; */ /* Lighter gold */
+/* } */
