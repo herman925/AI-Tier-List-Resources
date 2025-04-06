@@ -28,19 +28,6 @@ const translationMap = { // Maps translation keys (from JSON) to CSS selectors
     "footerText": "footer p",
     // Modal titles/labels will be handled separately when modals open
 };
-// Define which keys expect HTML content
-const htmlContentKeys = [
-    "appName",
-    "unrankedItemsTitle",
-    "addCustomAiButton",
-    "aiToolTierListTitle",
-    "addTierButton",
-    "removeTierButton",
-    "saveChartButton",
-    "shareChartButton",
-    "exportImageButton",
-    "resetChartButton"
-];
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => { // Make async
@@ -105,7 +92,7 @@ async function setLanguage(lang) { // Make async
     document.documentElement.dispatchEvent(langEvent);
 
     // 5. Update static text elements using loaded translations
-    updateStaticText(); // No need to pass lang, uses currentTranslations
+    updateStaticText(currentTranslations); // Pass currentTranslations
     console.log(`[LanguageManager] Language set to: ${lang}`);
 }
 
@@ -127,32 +114,59 @@ function updateButtonStates(activeLang) {
 
 /**
  * Updates text content of static elements based on the selected language.
+ * @param {Object} langData - The translation data for the current language.
+ * @param {Element} [rootElement=document] - The root element to search within. Defaults to the entire document.
  */
-function updateStaticText() {
-    if (!currentTranslations || Object.keys(currentTranslations).length === 0) {
-        console.warn("[LanguageManager] updateStaticText called but no translations are loaded.");
-        return;
+function updateStaticText(langData, rootElement = document) {
+    // --- DEBUGGING START ---
+    const rootId = rootElement.id || rootElement.tagName;
+    console.log(`[updateStaticText] Called for root: ${rootId}`);
+    if (!langData) {
+        console.error(`[updateStaticText] ERROR: langData is null/undefined for root: ${rootId}`);
+        return; // Stop if no language data
     }
+    // --- DEBUGGING END ---
+    
+    rootElement.querySelectorAll('[data-translate]').forEach(element => {
+        const key = element.getAttribute('data-translate');
+        // --- DEBUGGING START ---
+        console.log(`[updateStaticText][${rootId}] Processing key: ${key} for element:`, element);
+        // --- DEBUGGING END ---
+        const translation = getNestedTranslation(langData, key);
 
-    console.log("[LanguageManager] Updating static text elements...");
-
-    const elements = document.querySelectorAll('[data-translate]'); // Use data-translate
-    elements.forEach(elem => {
-        const key = elem.dataset.translate; // Get key from data-translate
-        const text = currentTranslations[key];
-
-        if (text === undefined) {
-            // console.warn(`[LanguageManager] No translation found for key: ${key}`);
-            return; // Skip if key not in current translations
-        }
-
-        // General case for other elements
-        if (htmlContentKeys.includes(key)) {
-            elem.innerHTML = text; // Use innerHTML for elements expected to contain HTML
+        if (translation) {
+            // --- DEBUGGING START ---
+            console.log(`[updateStaticText][${rootId}] Found translation for ${key}: "${translation}"`);
+            // --- DEBUGGING END ---
+            // Check if the element is an input/textarea with a placeholder
+            if (element.tagName === 'INPUT' && element.hasAttribute('placeholder')) {
+                element.placeholder = translation;
+            } else if (element.tagName === 'TITLE') {
+                document.title = translation; // Special handling for page title
+            } else {
+                element.innerHTML = translation; 
+            }
         } else {
-            elem.textContent = text; // Use textContent for plain text
+            console.warn(`[updateStaticText][${rootId}] Translation key NOT FOUND: ${key}`);
+            // Optionally leave the original text or set a default
+            // element.innerHTML = element.dataset.defaultText || key; // Example fallback
         }
     });
+}
+
+// Function to get nested translation values
+function getNestedTranslation(langData, key) {
+    const keys = key.split('.');
+    let text = langData;
+    try {
+        for (const k of keys) {
+            text = text[k];
+            if (text === undefined) throw new Error(`Key part '${k}' not found`);
+        }
+    } catch (e) {
+        text = undefined; // Ensure text is undefined if lookup failed
+    }
+    return text;
 }
 
 /**
@@ -175,3 +189,19 @@ async function loadLanguage(lang) {
         currentTranslations = {}; // Clear translations on error
     }
 }
+
+// Added getter for currentTranslations
+function getCurrentTranslations() {
+    return currentTranslations;
+}
+
+/**
+ * Returns the currently loaded translations.
+ * @returns {Object} The current translations object.
+ */
+export function getCurrentLanguageTranslations() {
+    return currentTranslations || {};
+}
+
+// Export functions that need to be used by other modules
+export { setLanguage, loadLanguage, updateStaticText, getCurrentTranslations };

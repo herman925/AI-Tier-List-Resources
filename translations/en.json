@@ -1,30 +1,116 @@
 {
   "appName": "AI Tier List Maker",
   "language": "Language",
-  "searchPlaceholder": "Search AI tools...",
-  "unrankedItemsTitle": "Unranked Tools",
-  "tierListSectionTitle": "Tier List", 
-  "manageTiersTitle": "Manage Tiers",
-  "aiToolTierListTitle": "AI Tool Tier List",
+  "pageTitle": "AI Tier List Maker", 
+  "header": {
+    "title": "AI Tier List Maker",
+    "subtitle": "Create and share your AI tool rankings",
+    "languageLabel": "Language:",
+    "langSwitchZH": "ZH",
+    "langSwitchEN": "EN"
+  },
+  "aiPool": {
+    "title": "<span class=\"icon\">🌌</span>AI Pool",
+    "searchPlaceholder": "Search AI tools...",
+    "addCustomButton": "+ Add Custom AI"
+  },
+  "tierList": {
+    "title": "<span class=\"icon\">🌠</span> Tier List",
+    "manageTiersTitle": "Manage Tiers",
+    "addTierButton": "Add Tier",
+    "removeTierButton": "Remove Last Tier"
+  },
+  "actions": {
+    "saveButton": "Save Chart",
+    "shareButton": "Share Chart",
+    "exportImageButton": "Export as Image",
+    "resetButton": "Reset Chart",
+    "exportCsvButton": "Export Placements (CSV)"
+  },
+  "footer": {
+    "text": "&copy; 2025 Created by 925. All rights reserved."
+  },
 
+  "modal": {
+    "addTier": {
+      "title": "Add New Tier",
+      "languageSwitchLabel": "Display Language:",
+      "langSwitchEN": "EN",
+      "langSwitchZH": "ZH",
+      "tierIdLabel": "Tier ID:",
+      "tierIdHint": "Short identifier (e.g., S, A, B, F)",
+      "nameEnLabel": "Name (EN):",
+      "nameZhLabel": "Name (ZH):",
+      "colorLabel": "Color:",
+      "saveButton": "Save Tier",
+      "cancelButton": "Cancel"
+    },
+    "edit": {
+      "title": "Edit AI Tool Details",
+      "modalNameZhLabel": "Name (ZH)",
+      "modalNameEnLabel": "Name (EN)",
+      "modalIconUrlLabel": "Icon URL",
+      "modalDescriptionZhLabel": "Description (ZH)",
+      "modalDescriptionEnLabel": "Description (EN)",
+      "modalSaveChanges": "Save Changes",
+      "modalCancel": "Cancel",
+      "displayLanguageLabel": "Display Language:"
+    },
+    "editAI": {
+      "title": "Edit AI Tool",
+      "languageSwitchLabel": "Display Language:",
+      "langSwitchEN": "EN",
+      "langSwitchZH": "ZH",
+      "nameZhLabel": "Name (ZH):",
+      "nameEnLabel": "Name (EN):",
+      "tierLabel": "Tier:",
+      "descriptionZhLabel": "Description (ZH):",
+      "descriptionEnLabel": "Description (EN):",
+      "imageUrlLabel": "Image URL:",
+      "websiteUrlLabel": "Website URL:",
+      "saveButton": "Save Changes",
+      "cancelButton": "Cancel",
+      "editButton": "Edit",
+      "readOnlyNameZhLabel": "AI Name (ZH):", 
+      "readOnlyNameEnLabel": "AI Name (EN):",
+      "readOnlyIconLabel": "Icon URL:",
+      "markdownPreviewLabel": "Description Preview"
+    },
+    "addAI": { 
+      "title": "Add Custom AI",
+      "languageSwitchLabel": "Display Language:",
+      "langSwitchEN": "EN",
+      "langSwitchZH": "ZH",
+      "nameLabel": "Name:", 
+      "nameEnLabel": "Name (EN):", 
+      "nameZhLabel": "Name (ZH):", 
+      "iconLabel": "Icon URL (Optional):",
+      "descriptionEnLabel": "Description (EN):",
+      "descriptionZhLabel": "Description (ZH):",
+      "markdownPreviewLabel": "Description Preview",
+      "confirmButton": "Confirm Add",
+      "cancelButton": "Cancel"
+    }
+  },
+  
+  "alerts": {
+    "tierRemoveConfirm": "Are you sure you want to remove the last tier? All items in it will become unranked.",
+    "resetConfirm": "Are you sure you want to reset the chart? All placements will be lost.",
+    "tierAddSuccess": "Tier added successfully!",
+    "tierAddError": "Error adding tier: ",
+    "tierAddDuplicateIdError": "Tier ID already exists. Please use a unique ID.",
+    "tierRemoveSuccess": "Last tier removed.",
+    "tierRemoveError": "Error removing tier: ",
+    "noTiersToRemove": "No tiers to remove.",
+    "itemUpdateSuccess": "AI Tool updated successfully!",
+    "itemUpdateError": "Error updating AI Tool: ",
+    "alertNoItemsToExport": "No items found in tiers or the pool to export.",
+    "alertExportNotAvailable": "Export feature currently unavailable. Please try again later."
+  },
   "tierIdLabel": "Tier ID",
   "tierNameZhLabel": "Tier Name (ZH)",
   "tierNameEnLabel": "Tier Name (EN)",
   "tierColorLabel": "Color",
-  "addTierButton": "Add Tier",
   "saveTiersButton": "Save Tiers",
-  "loadTiersButton": "Load Tiers",
-
-  "editModalTitle": "Edit AI Tool Details",
-  "modalNameZhLabel": "Name (ZH)",
-  "modalNameEnLabel": "Name (EN)",
-  "modalIconUrlLabel": "Icon URL",
-  "modalDescriptionZhLabel": "Description (ZH)",
-  "modalDescriptionEnLabel": "Description (EN)",
-  "modalSaveChanges": "Save Changes",
-  "modalCancel": "Cancel",
-
-  "exportCsvButtonLabel": "Export Placements (CSV)",
-  "alertNoItemsToExport": "No items found in tiers or the pool to export.",
-  "alertExportNotAvailable": "Export functionality is currently unavailable. Please try again later."
+  "loadTiersButton": "Load Tiers"
 }

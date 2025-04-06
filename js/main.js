@@ -11,7 +11,7 @@ import { saveState, loadState, clearState, exportAsImage, generateShareableLink,
 // Import only exported functions and alias them
 import { loadTiers, getLoadedTiers, handleAddTier as importedHandleAddTier, removeTier as importedRemoveTier, saveTiersToFile } from './tierManagement.js'; 
 import { setupEditModalListeners, getAllAIItems, showEditAIModal } from './aiToolManagement.js';
-import { exportPlacementsToCSV } from './exportManager.js'; // Import the export function
+import { exportStateToCSV } from './exportManager.js'; // Import the updated export function
 
 // Application state
 const state = {
@@ -25,8 +25,15 @@ const state = {
 async function init() {
     try {
         // Load AI items from CSV
-        await loadAIItemsFromCSV();
-        
+        let aiItems;
+        try {
+            aiItems = await getAllAIItems();
+        } catch (error) {
+            console.error('Error loading AI items from CSV:', error);
+            // Fallback to empty array if CSV loading fails
+            aiItems = [];
+        }
+
         // Try to load saved state from localStorage
         const savedState = loadState();
         if (savedState) {
@@ -40,7 +47,7 @@ async function init() {
             // Use the shared state instead
             mergeState(sharedState);
         }
-        
+
         // Load tiers asynchronously
         try {
             await loadTiers(); // Calls the exported async function
@@ -51,29 +58,33 @@ async function init() {
             // Handle tier loading failure - maybe load defaults or show error state
             state.tiers = []; // Ensure it's an empty array on failure
         }
-        
+
+        // Set up modals (including Add Tier modal logic which needs the callback)
+        // Pass handleAddTier from tierManagement
+        setupModals(importedHandleAddTier); 
+
+        // Populate tiers and the unranked pool based on the tier_id property of AI items.
+        populateInitialItems(aiItems); 
+        console.log("[main.js] Initial items populated.");
+
+        // Initialize Drag and Drop after items and tiers are rendered
+        // Use setTimeout to ensure DOM updates from populateInitialItems are complete
+        setTimeout(() => {
+            initDragAndDrop({
+                aiItems: aiItems,
+                tiers: getLoadedTiers() || []  // Get current tiers
+            });
+            console.log("[main.js] Drag and Drop initialized (after timeout).");
+        }, 0); // Delay of 0 pushes to next event loop tick
+
         // Set up state change handler
         state.onStateChange = handleStateChange;
-        
-        // Render initial UI
-        renderUI();
         
         // Set up event listeners
         setupEventListeners();
         
-        // Initialize drag and drop, passing the state
-        const { setup: setupDragDrop } = initDragAndDrop(state); // Pass state here
-        setupDragDrop(); // Setup drag/drop AFTER tiers and items are rendered
-        console.log("[main.js] Drag and drop setup complete.");
-        
-        // Set up modals
-        setupModals();
-        setupEditModalListeners(renderUI); // Setup edit modal listeners
-        
-        // --- Explicitly hide Edit Modal on init as a safeguard ---
-        const editModal = document.getElementById('editAIModal');
-        if (editModal) editModal.style.display = 'none';
-        // ---------
+        // Setup edit modal listeners separately
+        setupEditModalListeners(renderUI); 
         
     } catch (error) {
         console.error('Error initializing application:', error);
@@ -125,12 +136,14 @@ function mergeState(savedState) {
 }
 
 // Render the UI based on current state
-function renderUI() {
+function renderUI(aiItems, itemElementMap) {
     // Render AI pool
     const aiPoolContainer = document.getElementById('ai-items');
     if (aiPoolContainer) {
+        // Ensure aiItems is an array
+        const itemsArray = Array.isArray(aiItems) ? aiItems : [];
         // Combine default and custom AI items
-        const allItems = [...state.aiItems, ...state.customAIItems];
+        const allItems = [...itemsArray, ...state.customAIItems];
         renderAIPool(allItems, aiPoolContainer);
     }
     
@@ -139,51 +152,45 @@ function renderUI() {
     if (tiersContainer) {
         renderUITiers(state.tiers, tiersContainer);
     }
-    
-    // Populate tier dropzones with AI items
-    populateTierDropzones();
 }
 
-// Populate tier dropzones with AI items based on state
-function populateTierDropzones() {
-    state.tiers.forEach(tier => {
-        const tierRow = document.querySelector(`.tier-row[data-tier="${tier.id}"]`);
-        if (!tierRow) return;
-        
-        const dropzone = tierRow.querySelector('.tier-dropzone');
-        if (!dropzone) return;
-        
-        // Clear existing items
-        dropzone.innerHTML = '';
-        
-        // Add items that belong to this tier
-        if (tier.items && tier.items.length > 0) {
-            tier.items.forEach(itemId => {
-                // Find the item data
-                const itemData = [...state.aiItems, ...state.customAIItems].find(item => item.id === itemId);
-                if (itemData) {
-                    console.log('[populateTierDropzones] Found itemData for itemId:', itemId, 'itemData:', itemData, 'itemData.id:', itemData.id);
-                    // Create the AI item element
-                    const aiElement = document.createElement('div');
-                    aiElement.className = 'ai-item';
-                    aiElement.setAttribute('draggable', 'true');
-                    console.log('[populateTierDropzones] Setting data-id from itemData.id:', itemData.id);
-                    aiElement.setAttribute('data-id', itemData.id);
+// Populates tiers and the unranked pool based on the tier_id property of AI items.
+function populateInitialItems(aiItems) {
+    console.log("[main.js] Populating initial items based on tier_id...");
+    const unrankedPoolContainer = document.getElementById('ai-items');
 
-                    const img = document.createElement('img');
-                    img.src = itemData.icon || settings.defaultIconUrl;
-                    img.alt = `${itemData.name} Logo`;
-                    
-                    const name = document.createElement('span');
-                    name.textContent = itemData.name;
-                    
-                    aiElement.appendChild(img);
-                    aiElement.appendChild(name);
-                    dropzone.appendChild(aiElement);
-                }
-            });
+    if (!unrankedPoolContainer) {
+        console.error("[main.js] AI items container (#ai-items) not found!");
+        return;
+    }
+    unrankedPoolContainer.innerHTML = ''; // Clear unranked pool initially
+
+    // Clear existing items from all tier dropzones as well
+    document.querySelectorAll('.tier-items').forEach(zone => zone.innerHTML = '');
+
+    aiItems.forEach(item => {
+        const itemElement = renderAIItem(item); // Use renderAIItem instead of createAIItemElement
+        const targetTierId = item.tier_id;
+
+        if (targetTierId && targetTierId !== 'UNRANKED' && targetTierId !== '') {
+            // Attempt to place in a specific tier
+            // Look for tier-items with data-tier attribute matching the tier_id
+            const targetTierContainer = document.querySelector(`.tier-items[data-tier="${targetTierId}"]`);
+            
+            if (targetTierContainer) {
+                console.log(`[main.js] Placing item ${item.id} into tier ${targetTierId}`);
+                targetTierContainer.appendChild(itemElement); // Place in tier
+            } else {
+                console.warn(`[main.js] Tier container for tier_id "${targetTierId}" not found for item ${item.id}. Placing in unranked.`);
+                unrankedPoolContainer.appendChild(itemElement); // Fallback to unranked
+            }
+        } else {
+            // Place in unranked pool
+            console.log(`[main.js] Placing item ${item.id} into unranked pool.`);
+            unrankedPoolContainer.appendChild(itemElement);
         }
     });
+    console.log(`[main.js] Finished populating initial items. ${aiItems.length} items processed.`);
 }
 
 // Set up event listeners for buttons and other interactive elements
@@ -193,9 +200,8 @@ function setupEventListeners() {
     setupAddCustomAI(addCustomAI);
     
     // Setup tier control buttons using the IDs from index.html
-    // Assuming setupTierControls adds listeners to #add-tier-btn and #remove-tier-btn
-    // And those listeners will eventually call the imported functions.
-    setupTierControls(importedHandleAddTier, importedRemoveTier); // Keep passing functions for now
+    // Assuming setupTierControls adds listeners to #add-tier-btn
+    setupTierControls(); // No longer needs callbacks passed here
     
     // Setup action buttons
     setupActionButtons({
@@ -295,7 +301,7 @@ function resetChart() {
         state.tiers = []; // Reset tiers
         
         // Update UI
-        renderUI();
+        renderUI([]);
     }
 }
 
@@ -329,9 +335,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- Add listener for Export CSV button ---
     const exportCsvButton = document.getElementById('export-csv-button');
     if (exportCsvButton) {
-        exportCsvButton.addEventListener('click', () => {
-            // Call the imported function directly
-            exportPlacementsToCSV();
+        // Make the event listener async to handle the await for exportStateToCSV
+        exportCsvButton.addEventListener('click', async () => {
+            console.log("[main.js] Export button clicked, calling exportStateToCSV...");
+            try {
+                await exportStateToCSV(); // Await the async export function
+                console.log("[main.js] exportStateToCSV completed.");
+            } catch (error) {
+                console.error("[main.js] Error during exportStateToCSV call:", error);
+                // Optionally show a user-friendly error message here as well
+            }
         });
         console.log("[main.js] Export CSV button listener attached.");
     } else {

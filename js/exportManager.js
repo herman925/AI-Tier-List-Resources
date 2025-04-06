@@ -1,67 +1,114 @@
 /**
  * exportManager.js
- * Handles exporting the current tier list item placements to a CSV file.
+ * Handles exporting the current application state (AI tools, Tiers, Placements)
+ * as separate CSV files.
  */
 
-// Function to gather current item placements and trigger CSV download
-export function exportPlacementsToCSV() {
-    console.log("[ExportManager] Starting CSV export...");
-    const placements = [];
-    const header = "item_id,tier_id"; // CSV header
+// Import necessary functions from other modules
+import { getAllAIItems } from './aiToolManagement.js'; // Function to get current AI item data
+import { getLoadedTiers } from './tierManagement.js';   // Function to get current tier definitions
+import { getCurrentLanguageTranslations } from './languageManager.js';
 
-    // Get items from tier rows
-    document.querySelectorAll('.tier-row .tier-items .ai-item').forEach(item => {
-        const itemId = item.dataset.id;
-        const tierId = item.closest('.tier-items')?.dataset.tierId;
-        if (itemId && tierId) {
-            placements.push(`${itemId},${tierId}`);
-        } else {
-            console.warn(`[ExportManager] Skipping item in tier row due to missing ID. Item:`, item);
-        }
-    });
-
-    // Get items from the unranked pool
-    document.querySelectorAll('#unranked-items .ai-item').forEach(item => {
-        const itemId = item.dataset.id;
-        if (itemId) {
-            placements.push(`${itemId},UNRANKED`); // Use "UNRANKED" or similar for pool items
-        } else {
-            console.warn(`[ExportManager] Skipping item in unranked pool due to missing ID. Item:`, item);
-        }
-    });
-
-    if (placements.length === 0) {
-        console.warn("[ExportManager] No items found to export.");
-        // Optionally show a message to the user
-        alert(getCurrentLanguageTranslations()?.['alertNoItemsToExport'] || "No items found to export.");
-        return;
+// Helper function to safely format CSV fields (handles commas, quotes, newlines)
+function formatCsvField(field) {
+    if (field === null || field === undefined) {
+        return '';
     }
+    const stringField = String(field);
+    // If the field contains a comma, double quote, or newline, enclose in double quotes
+    if (stringField.includes(",") || stringField.includes("\"") || stringField.includes("\n")) {
+        // Escape existing double quotes by doubling them
+        const escapedField = stringField.replace(/"/g, '""');
+        return `"${escapedField}"`;
+    }
+    return stringField;
+}
 
-    const csvContent = header + "\n" + placements.join("\n");
-    console.log("[ExportManager] CSV content generated:", csvContent);
-
-    // Create a Blob and trigger download
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+// Helper function to trigger the download of a CSV file
+function triggerCSVDownload(filename, csvContent) {
+    console.log(`[ExportManager] Triggering download for ${filename}...`);
+    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' }); // Add BOM for Excel compatibility
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", "tier_placements.csv");
+    link.setAttribute("download", filename);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url); // Clean up
-
-    console.log("[ExportManager] CSV export initiated.");
+    console.log(`[ExportManager] Download initiated for ${filename}.`);
 }
 
-// Helper function (assuming languageManager.js provides this)
-// You might need to adjust this based on how languageManager exposes translations
-function getCurrentLanguageTranslations() {
-    // This is a placeholder - replace with actual call to get translations
-    // from languageManager if needed for alerts.
-    return window.currentTranslations || {};
-}
+// Main export function - generates and triggers downloads for ai_tools.csv and tiers.csv
+export async function exportStateToCSV() { // Make the function async
+    console.log("[ExportManager] Starting state export to CSV...");
 
-// Note: An event listener needs to be added in main.js
-// to call exportPlacementsToCSV() when the export button is clicked.
+    try {
+        // --- 1. Generate tiers.csv (Unchanged) --- 
+        const currentTiers = getLoadedTiers(); // Assumes this returns the array of tier objects (without items inside)
+        const tiersHeader = "tier_id,tier_name_zh,tier_name_en,tier_color";
+        const tiersRows = currentTiers.map(tier => [
+            formatCsvField(tier.id),
+            formatCsvField(tier.name_zh),
+            formatCsvField(tier.name_en),
+            formatCsvField(tier.color)
+        ].join(','));
+        const tiersCsvContent = tiersHeader + "\n" + tiersRows.join("\n");
+        triggerCSVDownload("tiers.csv", tiersCsvContent);
+
+        // --- 2. Generate combined ai_tools.csv with current placements --- 
+        const allAIItemsData = await getAllAIItems(); // Get base data (might have outdated tier_id)
+        const aiToolsHeader = "id,name_zh,name_en,icon,description_zh,description_en,tier_id";
+        const currentItemStates = new Map(); // Map to store current tier_id per item
+
+        // Get current placements from DOM
+        // From Tiers
+        document.querySelectorAll('.tier-row .tier-dropzone .ai-item').forEach(itemElement => {
+            const itemId = itemElement.dataset.id;
+            // Find the parent tier row and get its data-tier attribute
+            const tierRow = itemElement.closest('.tier-row');
+            const tierId = tierRow ? tierRow.dataset.tier : null; // Get tier ID from .tier-row
+            if (itemId && tierId) {
+                currentItemStates.set(itemId, tierId);
+            } else {
+                console.warn(`[ExportManager] Could not determine tier for item in tier list. Item ID: ${itemId}, Tier Row:`, tierRow);
+            }
+        });
+
+        // From Unranked Pool
+        document.querySelectorAll('#ai-items .ai-item').forEach(itemElement => {
+            const itemId = itemElement.dataset.id;
+            if (itemId) {
+                currentItemStates.set(itemId, ''); // Represent unranked with empty string
+            } else {
+                console.warn(`[ExportManager] Skipping unranked item due to missing ID. Item:`, itemElement);
+            }
+        });
+
+        // Combine base data with current placements
+        const aiToolsRows = allAIItemsData.map(item => {
+            const currentTierId = currentItemStates.has(item.id) ? currentItemStates.get(item.id) : ''; // Default to unranked if not found in DOM (shouldn't happen)
+            return [
+                formatCsvField(item.id),
+                formatCsvField(item.name_zh),
+                formatCsvField(item.name_en),
+                formatCsvField(item.icon),
+                formatCsvField(item.description_zh),
+                formatCsvField(item.description_en),
+                formatCsvField(currentTierId) // Use the current tier ID from DOM
+            ].join(',');
+        });
+
+        const aiToolsCsvContent = aiToolsHeader + "\n" + aiToolsRows.join("\n");
+        triggerCSVDownload("ai_tools.csv", aiToolsCsvContent); // Export as ai_tools.csv
+
+        console.log("[ExportManager] AI Tools and Tiers CSV exports initiated.");
+
+    } catch (error) {
+        console.error("[ExportManager] Error during CSV export:", error);
+        // Optionally show a user-friendly error message
+        const errorMsg = getCurrentLanguageTranslations()?.alertExportError || "An error occurred during export.";
+        alert(errorMsg);
+    }
+}

@@ -3,30 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="pageTitle">小赫的AI星辰榜</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/modal-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <title>小赫的AI星辰榜</title>
-    <!-- Include marked.js for Markdown parsing -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
-        <h1><span class="star-icon">✨</span> 小赫的AI星辰榜 <span class="star-icon">✨</span></h1>
-        <p>為你的 AI 工具們評定星級！</p>
+        <h1 data-translate="header.title"><span class="star-icon">✨</span> 小赫的AI星辰榜 <span class="star-icon">✨</span></h1>
+        <p data-translate="header.subtitle">為你的 AI 工具們評定星級！</p>
         <div class="controls">
             <!-- Language Switch -->
             <div class="language-switch">
-                <button id="lang-zh-btn" class="lang-btn active-lang" data-lang="zh">中</button>
-                <button id="lang-en-btn" class="lang-btn" data-lang="en">EN</button>
+                <span data-translate="header.languageLabel">Language:</span>
+                <button id="lang-zh-btn" class="lang-btn active-lang" data-lang="zh" data-translate="header.langSwitchZH">中</button>
+                <button id="lang-en-btn" class="lang-btn" data-lang="en" data-translate="header.langSwitchEN">EN</button>
             </div>
         </div>
     </header>
 
     <main class="container">
         <section id="nebula-candidate-area" class="ai-pool">
-            <h2><span class="icon">🌌</span> 星雲候補區 (AI Item Pool)</h2>
+            <h2 data-translate="aiPool.title"><span class="icon">🌌</span> 星雲候補區 (AI Item Pool)</h2>
             <div id="ai-items" class="item-grid">
                 <!-- AI items will be loaded here by JavaScript -->
                 <!-- Example structure: -->
@@ -35,42 +34,87 @@
                     <span>ChatGPT-4</span>
                 </div> -->
             </div>
-            <button id="add-custom-ai-btn" class="btn-secondary"><span class="icon">➕</span> 新增自訂 AI</button>
+            <button id="add-custom-ai-btn" class="btn-secondary" data-translate="aiPool.addCustomButton"><span class="icon">➕</span> 新增自訂 AI</button>
         </section>
 
         <section id="star-tier-division" class="tier-list">
-            <h2 data-translate="aiToolTierListTitle">AI Tool Tier List</h2>
+            <h2 data-translate="tierList.title">AI Tool Tier List</h2>
             <div id="tier-list-container">
                 <!-- Tiers will be loaded here by tierManagement.js -->
             </div>
             <div class="tier-controls">
-                <button id="add-tier-btn" class="btn-secondary"><span class="icon">➕</span> 新增層級</button>
-                <button id="remove-tier-btn" class="btn-secondary"><span class="icon">➖</span> 移除層級</button>
+                <button id="add-tier-btn" class="btn-secondary" data-translate="tierList.addTierButton"><span class="icon">➕</span> 新增層級</button>
             </div>
         </section>
 
         <section id="controls" class="action-buttons">
-            <button id="save-chart-btn" class="btn-primary"><span class="icon">💾</span> 封存星圖 (Save)</button>
-            <button id="share-chart-btn" class="btn-primary"><span class="icon">🔗</span> 分享星軌 (Share)</button>
-            <button id="export-csv-button" class="btn-primary"><span class="icon">📄</span> <span data-lang-key="exportCsvButtonLabel">Export Placements (CSV)</span></button>
-            <button id="reset-chart-btn" class="btn-danger"><span class="icon">🔄</span> 重設榜單 (Reset)</button>
+            <button id="save-chart-btn" class="btn-primary" data-translate="actions.saveButton"><span class="icon">💾</span> 封存星圖 (Save)</button>
+            <button id="share-chart-btn" class="btn-primary" data-translate="actions.shareButton"><span class="icon">🔗</span> 分享星軌 (Share)</button>
+            <button id="export-csv-button" class="btn-primary" data-translate="actions.exportCsvButton"><span class="icon">📄</span> <span data-translate="exportCsvButtonLabel">Export Placements (CSV)</span></button>
+            <button id="reset-chart-btn" class="btn-danger" data-translate="actions.resetButton"><span class="icon">🔄</span> 重設榜單 (Reset)</button>
         </section>
     </main>
 
     <footer>
-        <p>&copy; 2025 小赫的AI星辰榜. All rights reserved.</p>
+        <p data-translate="footer.text">&copy; 2025 小赫的AI星辰榜. All rights reserved.</p>
     </footer>
 
-    <!-- Modal for adding custom AI (example) -->
-    <div id="add-ai-modal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <span class="close-btn">&times;</span>
-            <h3>新增自訂 AI</h3>
-            <label for="custom-ai-name">名稱:</label>
-            <input type="text" id="custom-ai-name" name="custom-ai-name"><br><br>
-            <label for="custom-ai-icon">圖標 URL (可選):</label>
-            <input type="text" id="custom-ai-icon" name="custom-ai-icon"><br><br>
-            <button id="confirm-add-ai-btn" class="btn-primary">確認新增</button>
+    <!-- Modal for adding custom AI -->
+    <div id="add-ai-modal" class="modal">
+        <div class="modal-content edit-modal-content">
+            <span class="close-button" id="closeAddAIModal">&times;</span>
+            <h2 data-translate="modal.editAI.title">Edit AI Tool</h2>
+
+            <!-- Language Switch at Top (Consistent with Edit Modal) -->
+            <div class="language-switch" style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #444;">
+                <label style="margin-bottom: 0; margin-right: 10px;" data-translate="modal.addAI.languageSwitchLabel">Display Language:</label>
+                <button type="button" id="addAILangSwitchEN" class="lang-button" data-translate="modal.addAI.langSwitchEN">EN</button>
+                <button type="button" id="addAILangSwitchZH" class="lang-button active" data-translate="modal.addAI.langSwitchZH">ZH</button> 
+            </div>
+
+            <form id="addAIForm">
+                <!-- Bilingual Name -->
+                <div class="form-field-group"> 
+                    <div id="addItemNameENContainer" style="display: none;">
+                        <label for="addItemNameEN" data-translate="modal.addAI.nameEnLabel">Name (EN):</label>
+                        <input type="text" id="addItemNameEN" name="name_en">
+                    </div>
+                    <div id="addItemNameZHContainer">
+                        <label for="addItemNameZH" data-translate="modal.addAI.nameZhLabel">Name (ZH):</label>
+                        <input type="text" id="addItemNameZH" name="name_zh">
+                    </div>
+                </div>
+
+                <!-- Icon -->
+                <div class="form-field-group">
+                    <label for="addItemIcon" data-translate="modal.addAI.iconLabel">Icon URL (Optional):</label>
+                    <input type="url" id="addItemIcon" name="icon">
+                </div>
+
+                <!-- Description Fields -->
+                <div id="addDescriptionFields"> 
+                    <div class="description-field" id="addDescENContainer" style="display: none;">
+                        <label for="addItemDescriptionEN" data-translate="modal.addAI.descriptionEnLabel">Description (EN):</label>
+                        <textarea id="addItemDescriptionEN" name="description_en" rows="5"></textarea>
+                    </div>
+                    <div class="description-field" id="addDescZHContainer"> 
+                        <label for="addItemDescriptionZH" data-translate="modal.addAI.descriptionZhLabel">Description (ZH):</label>
+                        <textarea id="addItemDescriptionZH" name="description_zh" rows="5"></textarea>
+                    </div>
+                </div>
+
+                <!-- Markdown Preview -->
+                <div class="markdown-preview-container">
+                    <label data-translate="modal.addAI.markdownPreviewLabel">Description Preview</label> 
+                    <div id="addMarkdownPreview" class="markdown-preview"></div>
+                </div>
+
+                <!-- Modal Actions -->
+                <div class="modal-actions">
+                    <button type="submit" class="btn-primary" data-translate="modal.addAI.confirmButton">Confirm Add</button>
+                    <button type="button" id="cancelAddAI" class="btn-secondary" data-translate="modal.addAI.cancelButton">Cancel</button>
+                </div>
+            </form>
         </div>
     </div>
     
@@ -78,13 +122,13 @@
     <div id="editAIModal" class="modal">
         <div class="modal-content edit-modal-content"> 
             <span class="close-button" id="closeEditModal">&times;</span>
-            <h2>Edit AI Tool</h2>
+            <h2 data-translate="modal.editAI.title">Edit AI Tool</h2>
 
             <!-- Moved Language Switch to Top -->
             <div class="language-switch" style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #444;">
-                <label style="margin-bottom: 0; margin-right: 10px;">Display Language:</label>
-                <button type="button" id="langSwitchEN" class="lang-button">EN</button>
-                <button type="button" id="langSwitchZH" class="lang-button active">ZH</button> 
+                <label style="margin-bottom: 0; margin-right: 10px;" data-translate="modal.editAI.languageSwitchLabel">Display Language:</label>
+                <button type="button" id="langSwitchEN" class="lang-button" data-translate="modal.editAI.langSwitchEN">EN</button>
+                <button type="button" id="langSwitchZH" class="lang-button active" data-translate="modal.editAI.langSwitchZH">ZH</button> 
             </div>
 
             <form id="editAIForm">
@@ -94,11 +138,11 @@
                 <!-- Edit Mode Name Inputs -->
                 <div class="form-field-group edit-mode-element"> 
                     <div id="nameENContainer">
-                        <label for="editItemNameEN">Name (English):</label>
+                        <label for="editItemNameEN" data-translate="modal.editAI.nameEnLabel">Name (English):</label>
                         <input type="text" id="editItemNameEN" required>
                     </div>
                     <div id="nameZHContainer">
-                        <label for="editItemNameZH">AI工具名稱：</label>
+                        <label for="editItemNameZH" data-translate="modal.editAI.nameZhLabel">AI Name (ZH):</label>
                         <input type="text" id="editItemNameZH" required>
                     </div>
                 </div>
@@ -106,21 +150,21 @@
                 <div class="read-only-section read-only-element">
                     <!-- Chinese Name Pair -->
                     <div id="readOnlyPairZH" class="read-only-pair">
-                        <label>AI工具名稱：</label>
+                        <label data-translate="modal.editAI.readOnlyNameZhLabel">AI Name (ZH):</label>
                         <div class="value-container">
                             <span id="displayNameZH"></span>
                         </div>
                     </div>
                     <!-- English Name Pair -->
                     <div id="readOnlyPairEN" class="read-only-pair">
-                        <label>Tool Name:</label>
+                        <label data-translate="modal.editAI.readOnlyNameEnLabel">AI Name (EN):</label>
                         <div class="value-container">
                             <span id="displayNameEN"></span>
                         </div>
                     </div>
                     <!-- Icon URL Pair -->
                     <div id="readOnlyPairIcon" class="read-only-pair">
-                        <label>Icon</label>
+                        <label data-translate="modal.editAI.readOnlyIconLabel">Icon URL:</label>
                         <div class="value-container">
                             <span id="displayIconURL"></span>
                         </div>
@@ -129,42 +173,92 @@
 
                 <!-- Icon -->
                 <div class="form-field-group edit-mode-element">
-                    <label for="editItemIcon">圖示</label>
+                    <label for="editItemIcon" data-translate="modal.editAI.imageUrlLabel">Icon URL:</label>
                     <input type="url" id="editItemIcon">
                 </div>
 
                 <!-- Description Fields (Inputs hidden in read-only mode) -->
                 <div id="descriptionFields" class="edit-mode-element"> 
                     <div class="description-field edit-mode-element" id="descENContainer">
-                        <label for="editItemDescriptionEN">Tool Description</label>
+                        <label for="editItemDescriptionEN" data-translate="modal.editAI.descriptionEnLabel">Description (EN):</label>
                         <textarea id="editItemDescriptionEN" rows="5"></textarea>
                     </div>
                     <div class="description-field edit-mode-element" id="descZHContainer"> 
-                        <label for="editItemDescriptionZH">工具簡介編輯</label>
+                        <label for="editItemDescriptionZH" data-translate="modal.editAI.descriptionZhLabel">Description (ZH):</label>
                         <textarea id="editItemDescriptionZH" rows="5"></textarea>
                     </div>
                 </div>
 
                 <!-- Markdown Preview (Always visible, but content updates) -->
                 <div class="markdown-preview-container">
-                    <label>工具簡介</label> 
+                    <label data-translate="modal.editAI.markdownPreviewLabel">Description Preview</label> 
                     <div id="markdownPreview" class="markdown-preview"></div>
                 </div>
 
                 <!-- Modal Actions -->
                 <div class="modal-actions">
-                    <button type="button" id="editModeBtn" class="btn-secondary read-only-element">Edit</button> 
-                    <button type="submit" class="btn-primary edit-mode-element">Save Changes</button>
-                    <button type="button" id="cancelEdit" class="btn-secondary edit-mode-element">Cancel</button>
+                    <button type="button" id="editModeBtn" class="btn-secondary read-only-element" data-translate="modal.editAI.editButton">Edit</button> 
+                    <button type="submit" class="btn-primary edit-mode-element" data-translate="modal.editAI.saveButton">Save Changes</button>
+                    <button type="button" id="cancelEdit" class="btn-secondary edit-mode-element" data-translate="modal.editAI.cancelButton">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Tier Modal -->
+    <div id="addTierModal" class="modal">
+        <div class="modal-content edit-modal-content"> 
+            <span class="close-button" id="closeAddTierModal">&times;</span>
+            <h2 data-translate="modal.addTier.title">Add New Tier</h2>
+
+            <!-- Language Switch (Consistent with Edit Modal) -->
+            <div class="language-switch" style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #444;">
+                <label style="margin-bottom: 0; margin-right: 10px;" data-translate="modal.addTier.languageSwitchLabel">Display Language:</label>
+                <button type="button" id="addTierLangSwitchEN" class="lang-button" data-translate="modal.addTier.langSwitchEN">EN</button>
+                <button type="button" id="addTierLangSwitchZH" class="lang-button" data-translate="modal.addTier.langSwitchZH">ZH</button> 
+            </div>
+
+            <form id="addTierForm">
+                <!-- Tier ID -->
+                <div class="form-field-group"> 
+                    <label for="new-tier-id" data-translate="modal.addTier.tierIdLabel">Tier ID:</label>
+                    <input type="text" id="new-tier-id" name="tier_id" required maxlength="10" placeholder="e.g., S, A, B, F">
+                    <small data-translate="modal.addTier.tierIdHint">Short identifier (e.g., S, A, B, F)</small>
+                </div>
+
+                <!-- Bilingual Tier Name -->
+                <div class="form-field-group"> 
+                    <div id="addTierNameENContainer">
+                        <label for="new-tier-name-en" data-translate="modal.addTier.nameEnLabel">Name (EN):</label>
+                        <input type="text" id="new-tier-name-en" name="tier_name_en" required placeholder="e.g., S Tier">
+                    </div>
+                    <div id="addTierNameZHContainer">
+                        <label for="new-tier-name-zh" data-translate="modal.addTier.nameZhLabel">Name (ZH):</label>
+                        <input type="text" id="new-tier-name-zh" name="tier_name_zh" required placeholder="e.g., 恆星級">
+                    </div>
+                </div>
+
+                <!-- Tier Color -->
+                <div class="form-field-group"> 
+                    <label for="new-tier-color" data-translate="modal.addTier.colorLabel">Color:</label>
+                    <input type="color" id="new-tier-color" name="tier_color" value="#cccccc"> 
+                </div>
+
+                <!-- Modal Actions -->
+                <div class="modal-actions">
+                    <button type="submit" id="save-new-tier-btn" class="btn-primary" data-translate="modal.addTier.saveButton">Save Tier</button> 
+                    <button type="button" id="cancel-add-tier-btn" class="btn-secondary close-button" data-translate="modal.addTier.cancelButton">Cancel</button> 
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Load JavaScript modules -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script type="module" src="js/languageManager.js"></script>
-    <script type="module" src="js/exportManager.js"></script> <!-- Ensure this is type module -->
+    <script type="module" src="js/exportManager.js"></script> 
     <script type="module" src="js/main.js"></script>
     <script type="module" src="js/tierManagement.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </body>
 </html>

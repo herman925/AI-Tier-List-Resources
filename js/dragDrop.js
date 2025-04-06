@@ -24,9 +24,16 @@ export function initDragAndDrop(state) {
     // Initialize drag and drop functionality
     function setupDragListeners() {
         // Get all AI items (both in pool and in tiers)
-        const aiItems = document.querySelectorAll('.ai-item[draggable="true"]'); // Be more specific
+        const aiItems = document.querySelectorAll('.ai-item'); // SIMPLIFIED SELECTOR
+        console.log(`[DragDrop Debug] Found ${aiItems.length} draggable items (.ai-item) to attach listeners to.`); // UPDATED DEBUG LOG
         
         aiItems.forEach(item => {
+            // --- ADDED: Log mousedown event --- 
+            item.addEventListener('mousedown', (e) => {
+                console.log('[DragDrop Debug] mousedown event fired on item:', e.currentTarget.dataset.id);
+            });
+            // -----------
+            
             // Drag start event
             item.addEventListener('dragstart', handleDragStart);
             // Drag end event
@@ -34,7 +41,8 @@ export function initDragAndDrop(state) {
         });
         
         // Get all dropzones
-        const dropzones = document.querySelectorAll('.tier-items, .item-grid'); // Use .tier-items
+        const dropzones = document.querySelectorAll('.tier-items, .tier-dropzone, .item-grid'); // Include tier-dropzone
+        console.log(`[DragDrop Debug] Found ${dropzones.length} dropzones (.tier-items, .tier-dropzone, .item-grid) to attach listeners to.`); // ADDED DEBUG LOG
         
         dropzones.forEach(zone => {
             // Drag over event (needed to allow dropping)
@@ -48,8 +56,14 @@ export function initDragAndDrop(state) {
         });
     }
     
+    // --- CALL THE SETUP FUNCTION --- 
+    setupDragListeners();
+    // ----------------------------
+    
     // Handle drag start
     function handleDragStart(e) {
+        console.log('[DragDrop Debug] handleDragStart triggered for item:', e.target.dataset.id); // ADDED DEBUG LOG
+        
         // Find the closest ancestor which is the draggable item
         const item = e.target.closest('.ai-item');
         
@@ -102,7 +116,10 @@ export function initDragAndDrop(state) {
     
     // Handle drag leave (remove visual feedback)
     function handleDragLeave(e) {
-        this.classList.remove('over');
+        // Check if the mouse is leaving the dropzone entirely, not just moving over a child
+        if (!this.contains(e.relatedTarget)) {
+            this.classList.remove('over');
+        }
     }
     
     // Handle drop
@@ -173,7 +190,7 @@ export function initDragAndDrop(state) {
         // Remove dragging class
         
         // Remove 'over' class from all potential drop targets
-        const dropzones = document.querySelectorAll('.tier-items, .item-grid');
+        const dropzones = document.querySelectorAll('.tier-items, .tier-dropzone, .item-grid');
         dropzones.forEach(zone => {
             zone.classList.remove('over');
         });

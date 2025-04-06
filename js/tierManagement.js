@@ -113,12 +113,12 @@ function renderTiers(tiers) {
         const tierRow = document.createElement('div');
         tierRow.className = 'tier-row';
         tierRow.id = `tier-${tier.id}`;
-        tierRow.dataset.tierId = tier.id; // Add data attribute for identification
+        tierRow.setAttribute('data-tier', tier.id); // Use data-tier for consistency with main.js
 
         const tierLabel = document.createElement('div');
         tierLabel.className = 'tier-label';
         tierLabel.style.backgroundColor = tier.color;
-        tierLabel.dataset.tierId = tier.id; // Consistent data attribute
+        tierLabel.setAttribute('data-tier', tier.id); // Use data-tier for consistency
 
         const tierNameSpan = document.createElement('span');
         tierNameSpan.textContent = (currentLang === 'en' && tier.name_en) ? tier.name_en : tier.name_zh; // Display based on language
@@ -138,15 +138,15 @@ function renderTiers(tiers) {
         removeBtn.style.background = 'none';
         removeBtn.onclick = (event) => {
             event.stopPropagation(); // Prevent tier click events if any
-            removeTier(tier.id);
+            removeTier(event);
         };
 
         tierLabel.appendChild(tierNameSpan);
         tierLabel.appendChild(removeBtn); // Append remove button to label
 
         const tierItems = document.createElement('div');
-        tierItems.className = 'tier-items';
-        tierItems.dataset.tierId = tier.id; // For drag/drop identification
+        tierItems.className = 'tier-items tier-dropzone'; // Add tier-dropzone class for drag/drop
+        tierItems.setAttribute('data-tier', tier.id); // Use data-tier for consistency
 
         tierRow.appendChild(tierLabel);
         tierRow.appendChild(tierItems);
@@ -194,69 +194,71 @@ function setupEventListeners() {
 }
 
 /**
- * Handles adding a new tier based on input fields.
+ * Handles adding a new tier object to the list.
+ * @param {object} newTier - The tier object {id, name_zh, name_en, color, items:[]}.
+ * @returns {boolean} - True if the tier was added successfully, false otherwise.
  */
-export function handleAddTier() {
-    // Logic for adding tier - WILL BE MODIFIED FOR MODAL LATER
-    // Currently uses inline form elements - needs update!
-    const idInput = document.getElementById('new-tier-id');
-    const nameZhInput = document.getElementById('new-tier-name-zh');
-    const nameEnInput = document.getElementById('new-tier-name-en');
-    const colorInput = document.getElementById('new-tier-color');
-
-    if (!idInput || !nameZhInput || !nameEnInput || !colorInput) {
-        console.error("[TierManagement] Could not find all new tier input fields.");
-        return;
-    }
-
-    const newTier = {
-        id: idInput.value.trim(),
-        name_zh: nameZhInput.value.trim(),
-        name_en: nameEnInput.value.trim(),
-        color: colorInput.value.trim()
-    };
-
+export function handleAddTier(newTier) {
+    console.log("[TierManagement] handleAddTier called with:", newTier);
     // --- Basic Validation ---
-    if (!newTier.id) {
-        alert("Tier ID cannot be empty.");
-        return;
+    if (!newTier || typeof newTier !== 'object') {
+        console.error("[TierManagement] Invalid newTier object received.");
+        alert("Internal error: Invalid tier data received.");
+        return false; // Indicate failure
     }
+
+    if (!newTier.id || typeof newTier.id !== 'string' || newTier.id.trim() === '') {
+        alert(document.documentElement.lang === 'zh' ? "層級 ID 不能为空。" : "Tier ID cannot be empty.");
+        return false;
+    }
+    newTier.id = newTier.id.trim(); // Ensure trimmed ID is used for comparison
+
     if (loadedTiers.some(t => t.id.toLowerCase() === newTier.id.toLowerCase())) {
-        alert(`Tier ID '${newTier.id}' already exists. Please use a unique ID.`);
-        return;
+        alert((document.documentElement.lang === 'zh' ? `層級 ID '${newTier.id}' 已存在。請使用唯一的 ID。` : `Tier ID '${newTier.id}' already exists. Please use a unique ID.`));
+        return false;
     }
-    if (!newTier.name_zh && !newTier.name_en) {
-         alert("At least one Tier Name (ZH or EN) must be provided.");
-         return;
+    if ((!newTier.name_zh || newTier.name_zh.trim() === '') && (!newTier.name_en || newTier.name_en.trim() === '')) {
+         alert(document.documentElement.lang === 'zh' ? "必須提供至少一個層級名稱（中文或英文）。" : "At least one Tier Name (ZH or EN) must be provided.");
+         return false;
     }
-     if (!newTier.color) {
-         alert("Tier color must be selected.");
-         return;
+     if (!newTier.color || typeof newTier.color !== 'string' || newTier.color.trim() === '') {
+         alert(document.documentElement.lang === 'zh' ? "必須選擇層級顏色。" : "Tier color must be selected.");
+         return false;
     }
+    // Ensure names are trimmed
+    newTier.name_zh = newTier.name_zh ? newTier.name_zh.trim() : '';
+    newTier.name_en = newTier.name_en ? newTier.name_en.trim() : '';
     // --- End Validation ---
 
+    // Add items property if it's missing (should be added by ui.js, but good safety check)
+    if (!newTier.items) {
+        newTier.items = [];
+    }
 
-    loadedTiers.push(newTier);
+    loadedTiers.push(newTier); // Add to the in-memory array
     renderTiers(loadedTiers); // Re-render the list including the new tier
-    saveTiersToLocalStorage(); // Save to Local Storage
-
-    // Clear inputs
-    idInput.value = '';
-    nameZhInput.value = '';
-    nameEnInput.value = '';
-    colorInput.value = '#ffffff'; // Reset color picker to white
+    saveTiersToLocalStorage(); // Save updated tiers to Local Storage
 
     console.log("[TierManagement] Added new tier:", newTier);
-
-    // TODO: Add logic to save to Local Storage if desired
+    return true; // Indicate success
 }
 
 /**
  * Handles removing a tier by its ID.
- * @param {string} tierId - The ID of the tier to remove.
+ * @param {string|Event} tierId - The ID of the tier to remove or the event object.
  */
 export function removeTier(tierId) {
-    console.log(`[TierManagement] Attempting to remove tier: ${tierId}`);
+    // Check if tierId is an event object and extract the actual ID if needed
+    let actualTierId = tierId;
+    if (tierId && typeof tierId === 'object' && tierId.currentTarget) {
+        // Extract tier ID from the data-tier attribute of the closest tier-row
+        const tierRow = tierId.currentTarget.closest('.tier-row');
+        if (tierRow && tierRow.dataset.tier) {
+            actualTierId = tierRow.dataset.tier;
+        }
+    }
+
+    console.log(`[TierManagement] Attempting to remove tier: ${actualTierId}`);
 
     // Prevent removing below min tiers (use default if settings not loaded)
     const minTiers = (typeof settings !== 'undefined' && settings.minTiers) ? settings.minTiers : 2;
@@ -266,7 +268,7 @@ export function removeTier(tierId) {
     }
 
     // Find the tier index
-    const tierIndex = loadedTiers.findIndex(tier => tier.id === tierId);
+    const tierIndex = loadedTiers.findIndex(tier => tier.id === actualTierId);
     if (tierIndex !== -1) {
         // Remove the tier from the array
         loadedTiers.splice(tierIndex, 1);
@@ -274,11 +276,10 @@ export function removeTier(tierId) {
         // Re-render the tier list (this also removes the old row)
         renderTiers(loadedTiers);
         saveTiersToLocalStorage();
+        console.log(`[TierManagement] Tier removed: ${actualTierId}`);
     } else {
-        console.error(`[TierManagement] Tier not found for removal: ${tierId}`);
+        console.error(`[TierManagement] Tier not found for removal: ${actualTierId}`);
     }
-
-    console.log(`[TierManagement] Tier removed: ${tierId}`);
 }
 
 /**

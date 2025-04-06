@@ -344,9 +344,10 @@ button {
     height: 100%; /* Full height */
     overflow: auto; /* Enable scroll if needed */
     background-color: rgba(0,0,0,0.7); /* Black w/ opacity */
-    display: flex; /* Use flexbox for centering */
-    justify-content: center;
-    align-items: center;
+    /* display: flex;  Remove this conflicting property */
+    /* Centering will be handled when display is set to block/flex via JS */
+    justify-content: center; /* Keep these for when display is flex/block */
+    align-items: center;     /* Keep these for when display is flex/block */
 }
 
 .modal-content {
@@ -406,9 +407,6 @@ button {
         grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
     }
 }
-
-/* Edit AI Modal Specific Styles --> MOVED TO css/modal-styles.css */
-/* #editAIModal { ... } */
 
 /* Style for the container holding the AI items pool */
 #ai-items {

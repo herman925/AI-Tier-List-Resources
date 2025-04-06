@@ -4,6 +4,8 @@
  */
 
 import { settings } from './config.js';
+// Import the language functions needed
+import { getCurrentTranslations, updateStaticText, loadLanguage } from './languageManager.js';
 
 // --- Helper Functions --- //
 
@@ -90,11 +92,14 @@ export async function showEditAIModal(aiId) {
         // Store original data on the modal for cancellation reset
         modal.dataset.originalData = JSON.stringify(aiData);
 
-        // Set initial language view (e.g., 'EN')
+        // Set initial language state
         const initialLang = 'ZH'; // Default to Chinese
         modalContent.dataset.language = initialLang.toLowerCase(); // Set initial data-language attribute
         langSwitchEN.classList.toggle('active', initialLang === 'EN');
         langSwitchZH.classList.toggle('active', initialLang === 'ZH');
+
+        // CRITICAL: Actually load the language file that matches the button state
+        await loadLanguage(initialLang.toLowerCase());
 
         // Set initial preview based on initial language
         const initialDescription = initialLang === 'EN' ? aiData.description_en : aiData.description_zh;
@@ -104,6 +109,15 @@ export async function showEditAIModal(aiId) {
         modalContent.dataset.mode = 'read-only'; // Start in read-only mode
         modal.style.display = 'flex';
         console.log('[showEditAIModal] Modal display set to flex.');
+        
+        // --- Add translation update call here --- 
+        const currentLangData = getCurrentTranslations();
+        if (currentLangData) {
+            updateStaticText(currentLangData, modal); // Update text within this modal
+        } else {
+            console.warn('[AIToolManagement] Could not get current translations to update Edit AI modal.');
+        }
+        // ------------------------------------------
 
     } catch (error) {
         console.error('Error showing edit AI modal:', error);
@@ -155,48 +169,86 @@ function parseCSV(csvText) {
     const rows = text.trim().split(/\r?\n/); // Use regex for cross-platform line breaks and trim whitespace
     if (rows.length < 2) return []; // Need at least header + one data row
     
-    // Dynamically create objects based on headers
+    // Get headers from first row
     const headers = rows[0].split(',').map(header => header.trim());
-    console.log('[parseCSV] Using headers:', headers); // Log headers
+    console.log('[parseCSV] Using headers:', headers);
 
-    const items = rows.slice(1).map((row, index) => {
-        const values = row.split(','); // Basic split, assumes no commas within fields
-        let item = {};
-        try {
-            headers.forEach((header, i) => {
-                // Basic handling for fields potentially containing commas if quoted
-                // A proper CSV parser would be more robust
-                let value = (values[i] || '').trim();
-                if (value.startsWith('"') && value.endsWith('"')) {
-                    value = value.substring(1, value.length - 1);
-                }
-                // Map CSV headers to object keys
-                // Ensure correct mapping for new/old name fields
-                if (header === 'name_zh' || (header === 'name' && !item.hasOwnProperty('name_zh'))) {
-                    item.name_zh = value;
-                } else if (header === 'name_en') {
-                    item.name_en = value;
-                } else if (header === 'description_zh' || (header === 'description' && !item.hasOwnProperty('description_zh'))) {
-                     item.description_zh = value; // Keep existing description mapping as fallback
-                } else if (header === 'description_en') {
-                    item.description_en = value;
-                } else {
-                    item[header] = value;
-                }
-            });
-            // Ensure essential fields exist, even if empty
-            item.id = item.id || `temp_id_${index}`;
-            item.name_zh = item.name_zh || item.name || ''; // Fallback for old 'name' column
-            item.name_en = item.name_en || ''; 
-            item.icon = item.icon || '';
-            item.description_zh = item.description_zh || item.description || ''; // Fallback for old 'description'
-            item.description_en = item.description_en || '';
-            return item;
-        } catch (e) {
-            console.error(`[parseCSV] Error parsing row ${index + 1}: ${row}`, e);
-            return null;
+    // Process each data row
+    const items = [];
+    for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row.trim()) continue; // Skip empty rows
+        
+        // For this specific CSV format, we know there are 7 columns:
+        // id, name_zh, name_en, icon, description_zh, description_en, tier_id
+        // The issue is with description_en which may contain commas
+        
+        // First, get the ID which is always at the start
+        const idMatch = row.match(/^([^,]+),/);
+        if (!idMatch) continue;
+        const id = idMatch[1];
+        
+        // Find the last comma which separates tier_id from the rest
+        const lastCommaIndex = row.lastIndexOf(',');
+        if (lastCommaIndex === -1) continue;
+        
+        // Extract tier_id from the end
+        const tier_id = row.substring(lastCommaIndex + 1).trim();
+        
+        // Now handle the middle part by finding specific patterns
+        // Remove the id and tier_id parts we've already processed
+        const middlePart = row.substring(idMatch[0].length, lastCommaIndex);
+        
+        // Split the middle part into 5 segments (name_zh, name_en, icon, description_zh, description_en)
+        // We'll use a regex to match the first 4 fields which are less likely to contain commas
+        const fieldsRegex = /([^,]*),([^,]*),([^,]*),([^,]*),/;
+        const fieldsMatch = middlePart.match(fieldsRegex);
+        
+        if (!fieldsMatch) continue;
+        
+        // Extract the first 4 fields
+        const name_zh = fieldsMatch[1].trim();
+        const name_en = fieldsMatch[2].trim();
+        const icon = fieldsMatch[3].trim();
+        
+        // The remaining text after the first 4 fields contains description_zh and description_en
+        const descriptionPart = middlePart.substring(fieldsMatch[0].length);
+        
+        // Find the boundary between description_zh and description_en
+        // We'll assume description_zh doesn't contain periods followed by English text
+        const descBoundaryRegex = /\.,/;
+        const descBoundaryMatch = descriptionPart.match(descBoundaryRegex);
+        
+        let description_zh = '';
+        let description_en = '';
+        
+        if (descBoundaryMatch) {
+            const boundaryIndex = descriptionPart.indexOf(descBoundaryMatch[0]);
+            description_zh = descriptionPart.substring(0, boundaryIndex + 1).trim(); // Include the period
+            description_en = descriptionPart.substring(boundaryIndex + 2).trim(); // Skip the comma and space
+        } else {
+            // Fallback: just split at the first comma if we can't find a better boundary
+            const parts = descriptionPart.split(',', 2);
+            description_zh = parts[0].trim();
+            description_en = parts.length > 1 ? parts[1].trim() : '';
         }
-    }).filter(Boolean); // Remove any null items
+        
+        // Create the item object
+        const item = {
+            id,
+            name_zh,
+            name_en,
+            icon,
+            description_zh,
+            description_en,
+            tier_id
+        };
+        
+        // Debug log
+        console.log(`[parseCSV] Parsed item ${id} with tier_id: ${tier_id}`);
+        
+        items.push(item);
+    }
     
     return items;
 }
@@ -311,7 +363,7 @@ export function setupEditModalListeners(updateUICallback) {
     };
 
     // --- Language Switching Logic ---
-    const switchLanguage = (targetLang) => { // Removed direct style manipulation
+    const switchLanguage = async (targetLang) => { // Made async to await loadLanguage
         console.log(`[switchLanguage] Switching to ${targetLang}`);
         const isEN = targetLang === 'EN';
         const currentMode = modalContent.dataset.mode;
@@ -322,6 +374,21 @@ export function setupEditModalListeners(updateUICallback) {
         // Update button active states
         langSwitchEN.classList.toggle('active', isEN);
         langSwitchZH.classList.toggle('active', !isEN);
+
+        // Toggle visibility of language-specific containers
+        if (nameENContainer && nameZHContainer) {
+            // In edit mode, toggle display
+            if (currentMode === 'edit') {
+                nameENContainer.style.display = isEN ? 'block' : 'none';
+                nameZHContainer.style.display = isEN ? 'none' : 'block';
+            }
+        }
+        
+        // Toggle description containers visibility
+        if (descENContainer && descZHContainer) {
+            descENContainer.style.display = isEN ? 'block' : 'none';
+            descZHContainer.style.display = isEN ? 'none' : 'block';
+        }
 
         // Update preview based on the corresponding description textarea
         // Use original data if read-only, current input if editing
@@ -334,7 +401,20 @@ export function setupEditModalListeners(updateUICallback) {
         } else { // Edit mode
              previewText = isEN ? descENTextarea.value : descZHTextarea.value;
         }
-        updatePreview(previewText);
+        updatePreview(previewText || ''); // Ensure preview update has a default
+        
+        // --- Re-apply translations to the whole modal ---
+        // CRITICAL FIX: Actually load the correct language file instead of using whatever is current
+        const langCode = isEN ? 'en' : 'zh';
+        await loadLanguage(langCode); // Load the specific language file
+        const currentLangData = getCurrentTranslations(); 
+        if (currentLangData) {
+            console.log(`[switchLanguage] Re-applying static text for language: ${langCode}`);
+            updateStaticText(currentLangData, modal); // Pass the specific modal element
+        } else {
+            console.warn(`[switchLanguage] Could not get translations to update modal for language: ${langCode}`);
+        }
+        // --------------------------------------------------
         
         // Debug log for state
         console.log(`[switchLanguage] Mode: ${currentMode}, Lang: ${modalContent.dataset.language}, Preview updated.`);
@@ -352,6 +432,23 @@ export function setupEditModalListeners(updateUICallback) {
     descZHTextarea.addEventListener('input', () => {
         if (modalContent.dataset.mode === 'edit' && langSwitchZH.classList.contains('active')) {
             updatePreview(descZHTextarea.value);
+        }
+    });
+
+    // --- Description Textarea Event Listeners for Real-time Preview ---
+    // English description textarea
+    descENTextarea.addEventListener('input', () => {
+        // Only update preview if English is the active language
+        if (modalContent.dataset.language === 'en') {
+            updatePreview(descENTextarea.value || '');
+        }
+    });
+    
+    // Chinese description textarea
+    descZHTextarea.addEventListener('input', () => {
+        // Only update preview if Chinese is the active language
+        if (modalContent.dataset.language === 'zh') {
+            updatePreview(descZHTextarea.value || '');
         }
     });
 
@@ -523,24 +620,30 @@ function updateModalLanguage(lang) {
 // Initializes the AI tool management, loads data, sets up event listeners.
 function initializeAIToolManagement() {
     console.log("Initializing AI Tool Management...");
-    loadAIData().then(() => {
-        // Add listener for language changes
-        document.documentElement.addEventListener('languageChanged', (event) => {
-            updateModalLanguage(event.detail.lang);
-        });
+    // loadAIData().then(() => { // Temporarily disable loading/init related to this for diagnostics
+         // Add listener for language changes
+         document.documentElement.addEventListener('languageChanged', (event) => {
+             // --- Temporarily disable this listener's action --- 
+             // updateModalLanguage(event.detail.lang);
+             console.log(`[AIToolManagement] languageChanged listener triggered for ${event.detail.lang}, but updateModalLanguage call is commented out for testing.`);
+             // --------------------------------------------------
+         });
+ 
+         // Initial language update for modal when it loads
+         // We need to get the current language from the html tag
+         // const { currentLang } = getTranslations(); // Get current language
+         // --- Temporarily disable this initial call ---
+         // updateModalLanguage(currentLang);
+         console.log("[AIToolManagement] Initial updateModalLanguage call commented out for testing.");
+         // -------------------------------------------
+ 
+         // Original setup calls
+         // populateUnrankedPool(aiToolsData); // Also disable dependent calls
+         // setupModalEventListeners(); // Also disable dependent calls
+    // }); // End of temporarily disabled block
+ }
 
-        // Initial language update for modal when it loads
-        // We need to get the current language from the html tag
-        const { currentLang } = getTranslations(); // Get current language
-        updateModalLanguage(currentLang);
-
-        // Original setup calls
-        populateUnrankedPool(aiToolsData);
-        setupModalEventListeners();
-    });
-}
-
-/**
+ /**
  * Finds the tier ID for a given AI item ID.
  * @param {string} itemId The ID of the AI item.
  * @returns {string|null} The tier ID or null if not found in a tier.
@@ -551,4 +654,41 @@ function findParentTierId(itemId) {
     const currentTiers = loadTiers(); // Assuming this gives the latest tier structure
     const tier = currentTiers.find(t => t.items?.includes(itemId));
     return tier ? tier.id : null;
+}
+
+/**
+ * Adds a new AI item to the collection.
+ * @param {Object} newAI The new AI item to add.
+ * @returns {Promise<boolean>} True if successful, false otherwise.
+ */
+export async function addAIItem(newAI) {
+    try {
+        console.log('[addAIItem] Adding new AI item:', newAI);
+        
+        // Generate a unique ID if not provided
+        if (!newAI.id) {
+            // Get all existing items to ensure unique ID
+            const allItems = await getAllAIItems();
+            // Find the highest existing numeric ID
+            const maxId = allItems.reduce((max, item) => {
+                const idNum = parseInt(item.id.replace(/\D/g, ''));
+                return isNaN(idNum) ? max : Math.max(max, idNum);
+            }, 0);
+            // Create new ID with format AI### (padded to 3 digits)
+            newAI.id = `AI${(maxId + 1).toString().padStart(3, '0')}`;
+        }
+        
+        // Add the new item to the collection
+        const allItems = await getAllAIItems();
+        allItems.push(newAI);
+        
+        // Save the updated collection
+        await saveAllAIItems(allItems);
+        
+        console.log(`[addAIItem] Successfully added AI item with ID: ${newAI.id}`);
+        return true;
+    } catch (error) {
+        console.error('[addAIItem] Error adding AI item:', error);
+        return false;
+    }
 }

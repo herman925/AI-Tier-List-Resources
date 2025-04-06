@@ -6,7 +6,35 @@
   "tierListSectionTitle": "等級列表",
   "manageTiersTitle": "管理等級",
   "aiToolTierListTitle": "AI 工具等級列表",
-
+  "pageTitle": "小赫的AI星辰榜",
+  "header": {
+    "title": "<span class=\"star-icon\">✨</span> 小赫的AI星辰榜 <span class=\"star-icon\">✨</span>",
+    "subtitle": "為你的 AI 工具們評定星級！",
+    "languageLabel": "語言:",
+    "langSwitchZH": "中",
+    "langSwitchEN": "英"
+  },
+  "aiPool": {
+    "title": "<span class=\"icon\">🌌</span> 星雲候補區",
+    "searchPlaceholder": "搜索 AI 工具...",
+    "addCustomButton": "<span class=\"icon\">➕</span> 新增自訂 AI"
+  },
+  "tierList": {
+    "title": "<span class=\"icon\">🌠</span> 星際等級",
+    "manageTiersTitle": "管理等級",
+    "addTierButton": "<span class=\"icon\">➕</span> 新增層級",
+    "removeTierButton": "<span class=\"icon\">➖</span> 移除末級"
+  },
+  "actions": {
+    "saveButton": "<span class=\"icon\">💾</span> 封存星圖",
+    "shareButton": "<span class=\"icon\">🔗</span> 分享星軌",
+    "exportImageButton": "<span class=\"icon\">🖼️</span> 匯出星圖",
+    "resetButton": "<span class=\"icon\">🔄</span> 重設榜單",
+    "exportCsvButton": "<span class=\"icon\">📄</span> 匯出CSV記錄"
+  },
+  "footer": {
+    "text": "&copy; 2025 小赫的AI星辰榜，版權所有。"
+  },
   "tierIdLabel": "等級 ID",
   "tierNameZhLabel": "等級名稱 (中)",
   "tierNameEnLabel": "等級名稱 (英)",
@@ -14,17 +42,79 @@
   "addTierButton": "新增等級",
   "saveTiersButton": "儲存等級",
   "loadTiersButton": "載入等級",
-
-  "editModalTitle": "編輯 AI 工具詳細信息",
-  "modalNameZhLabel": "名稱 (中)",
-  "modalNameEnLabel": "名稱 (英)",
-  "modalIconUrlLabel": "圖標 URL",
-  "modalDescriptionZhLabel": "描述 (中)",
-  "modalDescriptionEnLabel": "描述 (英)",
-  "modalSaveChanges": "儲存變更",
-  "modalCancel": "取消",
-
-  "exportCsvButtonLabel": "匯出位置 (CSV)",
+  "modal": {
+    "addTier": {
+      "title": "新增等級",
+      "languageSwitchLabel": "顯示語言：",
+      "langSwitchEN": "英",
+      "langSwitchZH": "中",
+      "tierIdLabel": "等級 ID：",
+      "tierIdHint": "簡短標識符 (例如 S, A, B, F)",
+      "nameZhLabel": "等級名稱 (中)：",
+      "nameEnLabel": "等級名稱 (英)：",
+      "colorLabel": "顏色：",
+      "saveButton": "儲存等級",
+      "cancelButton": "取消"
+    },
+    "edit": {
+      "title": "編輯 AI 工具詳細信息",
+      "nameZhLabel": "工具名稱 (中)",
+      "nameEnLabel": "工具名稱 (英)",
+      "iconUrlLabel": "圖標 URL",
+      "descriptionZhLabel": "描述 (中)",
+      "descriptionEnLabel": "描述 (英)",
+      "saveChanges": "儲存變更",
+      "cancel": "取消"
+    },
+    "editAI": {
+      "title": "編輯 AI 工具",
+      "languageSwitchLabel": "顯示語言：",
+      "langSwitchEN": "英",
+      "langSwitchZH": "中",
+      "nameZhLabel": "工具名稱 (中)：",
+      "nameEnLabel": "工具名稱 (英)：",
+      "tierLabel": "等級：",
+      "descriptionZhLabel": "描述 (中)：",
+      "descriptionEnLabel": "描述 (英)：",
+      "imageUrlLabel": "圖示 URL：",
+      "websiteUrlLabel": "網站連結：",
+      "saveButton": "保存更改",
+      "cancelButton": "取消",
+      "editButton": "编辑",
+      "readOnlyNameZhLabel": "AI 名稱 (中)：", 
+      "readOnlyNameEnLabel": "AI 名稱 (英)：",
+      "readOnlyIconLabel": "圖示 URL：",
+      "markdownPreviewLabel": "工具描述"
+    },
+    "addAI": { 
+      "title": "新增自訂 AI",
+      "languageSwitchLabel": "顯示語言:",
+      "langSwitchEN": "EN",
+      "langSwitchZH": "ZH",
+      "nameLabel": "工具名稱:",
+      "nameEnLabel": "工具名稱 (EN):", 
+      "nameZhLabel": "工具名稱 (ZH):", 
+      "iconLabel": "圖標 URL (可選):",
+      "descriptionEnLabel": "描述 (EN):",
+      "descriptionZhLabel": "描述 (ZH):",
+      "markdownPreviewLabel": "描述預覽",
+      "confirmButton": "確認新增",
+      "cancelButton": "取消"
+    }
+  },
+  "exportCsvButtonLabel": "匯出CSV",
   "alertNoItemsToExport": "未在層級或工具池中找到可匯出的項目。",
-  "alertExportNotAvailable": "匯出功能目前不可用。請稍後再試。"
+  "alertExportNotAvailable": "匯出功能目前不可用。請稍後再試。",
+  "alerts": {
+    "tierRemoveConfirm": "您確定要移除最後一個等級嗎？其中的所有項目將變為未評分。",
+    "resetConfirm": "您確定要重置圖表嗎？所有布局都将丢失。",
+    "tierAddSuccess": "等級添加成功！",
+    "tierAddError": "添加等級時出錯：",
+    "tierAddDuplicateIdError": "等級 ID 已存在。請使用唯一的 ID。",
+    "tierRemoveSuccess": "最後一個等級已移除。",
+    "tierRemoveError": "移除等級時出錯：",
+    "noTiersToRemove": "沒有可移除的等級。",
+    "itemUpdateSuccess": "AI 工具更新成功！",
+    "itemUpdateError": "更新 AI 工具時出錯："
+  }
 }
