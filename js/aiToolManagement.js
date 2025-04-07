@@ -51,24 +51,37 @@ export async function showEditAIModal(aiId) {
         const nameZHInput = document.getElementById('editItemNameZH');
         const nameENContainer = document.getElementById('nameENContainer');
         const nameZHContainer = document.getElementById('nameZHContainer');
+        const toolWebsiteInput = document.getElementById('editItemToolWebsite');
+        // Date inputs
+        const releaseMonthInput = document.getElementById('editItemReleaseMonth');
+        const releaseYearInput = document.getElementById('editItemReleaseYear');
         const modalContent = modal.querySelector('.modal-content'); // Get modal content div
         const displayNameEN = document.getElementById('displayNameEN');
         const displayNameZH = document.getElementById('displayNameZH');
         const displayIconURL = document.getElementById('displayIconURL');
+        // Add potential read-only spans for new fields (optional, depends on HTML)
+        const displayToolWebsite = document.getElementById('displayToolWebsite');
+        const displayReleaseDate = document.getElementById('displayReleaseDate'); // Read-only span
         
         // Check if all elements were found
         if (!modal || !idInput || !iconInput 
             || !descENInput || !descZHInput || !langSwitchEN || !langSwitchZH 
             || !descENContainer || !descZHContainer || !markdownPreview
             || !nameENInput || !nameZHInput || !nameENContainer || !nameZHContainer
-            || !modalContent || !displayNameEN || !displayNameZH || !displayIconURL) { 
+            || !toolWebsiteInput 
+            || !releaseMonthInput || !releaseYearInput // New date inputs
+            || !modalContent || !displayNameEN || !displayNameZH || !displayIconURL 
+            || !displayReleaseDate // Check read-only span too
+            ) { 
             console.error('[showEditAIModal] One or more modal elements not found using corrected IDs. Check HTML.');
              // Log which elements are missing
             console.log({ modal, idInput, iconInput, 
                           descENInput, descZHInput, langSwitchEN, langSwitchZH, 
                           descENContainer, descZHContainer, markdownPreview,
                           nameENInput, nameZHInput, nameENContainer, nameZHContainer, 
-                          modalContent, displayNameEN, displayNameZH, displayIconURL
+                          toolWebsiteInput, releaseMonthInput, releaseYearInput, // New date inputs
+                          modalContent, displayNameEN, displayNameZH, displayIconURL,
+                          displayToolWebsite, displayReleaseDate 
                         });
             return; // Stop if essential elements are missing
         }
@@ -76,18 +89,26 @@ export async function showEditAIModal(aiId) {
 
         idInput.value = aiData.id;
         iconInput.value = aiData.icon || '';
-        // Populate Bilingual Names
         nameENInput.value = aiData.name_en || '';
-        nameZHInput.value = aiData.name_zh || ''; // Use name_zh
-        // Populate Bilingual Descriptions
-        descENInput.value = aiData.description_en || ''; // Populate EN description
-        descZHInput.value = aiData.description_zh || ''; // Populate ZH description
+        nameZHInput.value = aiData.name_zh || ''; 
+        descENInput.value = aiData.description_en || '';
+        descZHInput.value = aiData.description_zh || ''; 
+        toolWebsiteInput.value = aiData.toolWebsite || ''; 
+
+        // Populate Date Inputs (split YYYY-MM)
+        const [year, month] = (aiData.releaseDate || '-').split('-');
+        releaseYearInput.value = year || '';
+        releaseMonthInput.value = month || '';
+
         console.log('[showEditAIModal] Populated basic fields.');
         
         // Populate Read-Only Spans
         displayNameEN.textContent = aiData.name_en || 'N/A';
         displayNameZH.textContent = aiData.name_zh || 'N/A';
         displayIconURL.textContent = aiData.icon || 'N/A';
+        if (displayToolWebsite) displayToolWebsite.textContent = aiData.toolWebsite || 'N/A';
+        // Display date in read-only span (keep YYYY-MM format)
+        displayReleaseDate.textContent = aiData.releaseDate || 'N/A'; 
 
         // Store original data on the modal for cancellation reset
         modal.dataset.originalData = JSON.stringify(aiData);
@@ -184,15 +205,17 @@ export async function saveAIItemChanges(aiId, newData, updateUICallback) {
             throw new Error(`AI item with ID ${aiId} not found`);
         }
         
-        // Update the item
-        allItems[itemIndex] = { ...allItems[itemIndex], ...newData };
+        // Update the item in the array
+        const updatedItem = { ...allItems[itemIndex], ...newData };
+        allItems[itemIndex] = updatedItem;
         
-        // Save back to JSON
+        // Save back to JSON/localStorage
         await saveAllAIItems(allItems);
         
-        // Call the update UI callback if provided
+        // Call the update UI callback if provided, passing the full updated item data
         if (updateUICallback && typeof updateUICallback === 'function') {
-            updateUICallback();
+            // Ensure the ID is passed along with the newData
+            updateUICallback(updatedItem); 
         }
         
         return true;
@@ -253,17 +276,26 @@ export function setupEditModalListeners(updateUICallback) {
     const nameZHInput = document.getElementById('editItemNameZH');
     const iconInput = document.getElementById('editItemIcon'); // Get icon input
     const idInput = document.getElementById('editItemId');     // Get id input
+    const toolWebsiteInput = document.getElementById('editItemToolWebsite');
+    // Date inputs
+    const releaseMonthInput = document.getElementById('editItemReleaseMonth');
+    const releaseYearInput = document.getElementById('editItemReleaseYear');
 
     // Read-only spans
     const displayNameEN = document.getElementById('displayNameEN');
     const displayNameZH = document.getElementById('displayNameZH');
     const displayIconURL = document.getElementById('displayIconURL');
+    // Add potential read-only spans for new fields (optional)
+    const displayToolWebsite = document.getElementById('displayToolWebsite');
+    const displayReleaseDate = document.getElementById('displayReleaseDate');
 
     // Helper to update read-only display spans
     const updateReadOnlyDisplay = (data) => {
         displayNameEN.textContent = data.name_en || 'N/A';
         displayNameZH.textContent = data.name_zh || 'N/A';
         displayIconURL.textContent = data.icon || 'N/A';
+        if (displayToolWebsite) displayToolWebsite.textContent = data.toolWebsite || 'N/A';
+        if (displayReleaseDate) displayReleaseDate.textContent = data.releaseDate || 'N/A'; // Display YYYY-MM
     };
 
     // --- Language Switching Logic ---
@@ -363,14 +395,23 @@ export function setupEditModalListeners(updateUICallback) {
     editModeBtn.addEventListener('click', () => {
         console.log('[Edit Button Click] Switching to edit mode.');
         modalContent.dataset.mode = 'edit';
-        
+
         // Store current values from inputs/spans before user potentially changes them
-        // We get this from the input fields themselves, which were populated by showEditAIModal
+        // Combine date fields for storage
+        const month = releaseMonthInput.value;
+        const year = releaseYearInput.value;
+        let currentReleaseDate = '';
+        if (year && month) {
+            currentReleaseDate = `${year}-${month}`;
+        }
+
         originalDataBeforeEdit = {
             id: idInput.value,
             name_en: nameENInput.value,
             name_zh: nameZHInput.value,
             icon: iconInput.value,
+            toolWebsite: toolWebsiteInput.value,
+            releaseDate: currentReleaseDate, // Store combined date
             description_en: descENTextarea.value,
             description_zh: descZHTextarea.value
         };
@@ -394,9 +435,15 @@ export function setupEditModalListeners(updateUICallback) {
         nameENInput.value = originalDataBeforeEdit.name_en || '';
         nameZHInput.value = originalDataBeforeEdit.name_zh || '';
         iconInput.value = originalDataBeforeEdit.icon || '';
+        toolWebsiteInput.value = originalDataBeforeEdit.toolWebsite || '';
+        // Restore Date (Split YYYY-MM)
+        const [year, month] = (originalDataBeforeEdit.releaseDate || '-').split('-');
+        releaseYearInput.value = year || '';
+        releaseMonthInput.value = month || '';
+        //---
         descENTextarea.value = originalDataBeforeEdit.description_en || '';
         descZHTextarea.value = originalDataBeforeEdit.description_zh || '';
-        
+
         modalContent.dataset.mode = 'read-only';
         // Update preview based on reverted (original) data
         switchLanguage(langSwitchEN.classList.contains('active') ? 'EN' : 'ZH'); 
@@ -408,10 +455,25 @@ export function setupEditModalListeners(updateUICallback) {
         console.log("[Form Submit] Attempting to save changes...");
 
         const aiId = idInput.value;
+
+        // Combine date fields for saving
+        const month = releaseMonthInput.value;
+        const year = releaseYearInput.value;
+        let releaseDate = '';
+        if (year && month) {
+            releaseDate = `${year}-${month}`;
+        } else if (year || month) {
+            // If only one is provided, maybe alert the user or clear both?
+            // For now, only save if both are present.
+            console.warn('Release month or year missing, saving releaseDate as empty.');
+        }
+
         const updatedData = {
             name_en: nameENInput.value.trim(),
             name_zh: nameZHInput.value.trim(),
             icon: iconInput.value.trim(),
+            toolWebsite: toolWebsiteInput.value.trim(),
+            releaseDate: releaseDate, // Use combined date
             description_en: descENTextarea.value.trim(),
             description_zh: descZHTextarea.value.trim()
         };
@@ -432,7 +494,13 @@ export function setupEditModalListeners(updateUICallback) {
             updateReadOnlyDisplay(updatedData);
             
             // Update the stored original data to reflect the save
-            modal.dataset.originalData = JSON.stringify({ id: aiId, ...updatedData }); 
+            // Need to fetch the full item again or construct it to include ID etc.
+            // For simplicity, let's construct it:
+            const savedItemData = {
+                id: aiId,
+                ...updatedData
+            };
+            modal.dataset.originalData = JSON.stringify(savedItemData);
 
             // Switch back to read-only mode
             modalContent.dataset.mode = 'read-only';
@@ -451,27 +519,39 @@ export function setupEditModalListeners(updateUICallback) {
         console.log("[Close Button Click] Modal closed.");
     });
 
-    // Add checks for the new pair containers
+    // Add checks for the new pair containers and inputs
     const readOnlyPairZH = document.getElementById('readOnlyPairZH');
     const readOnlyPairEN = document.getElementById('readOnlyPairEN');
     const readOnlyPairIcon = document.getElementById('readOnlyPairIcon');
+    // Add new read-only pairs (optional)
+    const readOnlyPairToolWebsite = document.getElementById('readOnlyPairToolWebsite');
+    const readOnlyPairReleaseDate = document.getElementById('readOnlyPairReleaseDate');
 
     // Check if all required elements exist
     if (!modal || !modalContent || !closeButton || !editForm || !cancelEditButton || !editModeBtn || // Core modal elements
-        !langSwitchEN || !langSwitchZH || !descENContainer || !descZHContainer || 
+        !langSwitchEN || !langSwitchZH || !descENContainer || !descZHContainer ||
         !descENTextarea || !descZHTextarea || !markdownPreview || !nameENContainer || !nameZHContainer ||
-        !nameENInput || !nameZHInput || !iconInput || !idInput || // Edit mode inputs
+        !nameENInput || !nameZHInput || !iconInput || !idInput ||
+        !toolWebsiteInput || !releaseMonthInput || !releaseYearInput || // New inputs
         !displayNameEN || !displayNameZH || !displayIconURL || // Read mode value spans
-        !readOnlyPairZH || !readOnlyPairEN || !readOnlyPairIcon // Read mode pairs
+        !readOnlyPairZH || !readOnlyPairEN || !readOnlyPairIcon || // Read mode pairs
+        !displayReleaseDate || !readOnlyPairReleaseDate // New read-only pair + span
+        // Optional new read-only pairs
+        // || !readOnlyPairToolWebsite || !readOnlyPairReleaseDate
     ) {
         console.error('[setupEditModalListeners] Could not find one or more required modal elements. Aborting listener setup.');
         // Log missing elements for easier debugging
         console.log({ modal, modalContent, closeButton, editForm, cancelEditButton, editModeBtn,
-                      langSwitchEN, langSwitchZH, descENContainer, descZHContainer, 
+                      langSwitchEN, langSwitchZH, descENContainer, descZHContainer,
                       descENTextarea, descZHTextarea, markdownPreview, nameENContainer, nameZHContainer,
-                      nameENInput, nameZHInput, iconInput, idInput, 
+                      nameENInput, nameZHInput, iconInput, idInput,
+                      toolWebsiteInput, releaseMonthInput, releaseYearInput, // New inputs
                       displayNameEN, displayNameZH, displayIconURL,
-                      readOnlyPairZH, readOnlyPairEN, readOnlyPairIcon });
+                      readOnlyPairZH, readOnlyPairEN, readOnlyPairIcon,
+                      displayReleaseDate, readOnlyPairReleaseDate, // New
+                      // Optional new read-only pairs
+                      readOnlyPairToolWebsite, readOnlyPairReleaseDate
+                     });
         return;
     }
     console.log('[setupEditModalListeners] All required elements found.');
