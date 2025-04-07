@@ -13,7 +13,7 @@
 <body>
     <header>
         <h1 data-translate="header.title"><span class="star-icon">✨</span> 小赫的AI星辰榜 <span class="star-icon">✨</span></h1>
-        <p data-translate="header.subtitle">為你的 AI 工具們評定星級！</p>
+        <p data-translate="header.subtitle">AI的終極榜單！</p>
         <div class="controls">
             <!-- Language Switch -->
             <div class="language-switch">
@@ -60,96 +60,98 @@
         <p data-translate="footer.text">&copy; 2025 小赫的AI星辰榜. All rights reserved.</p>
     </footer>
 
-    <!-- Modal for adding custom AI -->
+    <!-- Add AI Modal (Structure based on Edit Modal) -->
     <div id="add-ai-modal" class="modal">
-        <div class="modal-content edit-modal-content">
+        <div class="modal-content edit-modal-content"> <!-- Reuse styles -->
             <span class="close-button" id="closeAddAIModal">&times;</span>
-            <h2 data-translate="modal.editAI.title">Edit AI Tool</h2>
+            <h2 data-translate="modal.addAI.title">Add Custom AI</h2>
 
-            <!-- Language Switch at Top (Consistent with Edit Modal) -->
-            <div class="language-switch" style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #444;">
-                <label style="margin-bottom: 0; margin-right: 10px;" data-translate="modal.addAI.languageSwitchLabel">Display Language:</label>
-                <button type="button" id="addAILangSwitchEN" class="lang-button" data-translate="modal.addAI.langSwitchEN">EN</button>
-                <button type="button" id="addAILangSwitchZH" class="lang-button active" data-translate="modal.addAI.langSwitchZH">ZH</button> 
-            </div>
+            <form id="addAIForm" class="modal-form">
+                <!-- Row 1: Language Switch + Icon -->
+                <div class="modal-row form-header-row">
+                     <!-- Language Switch (Edit Mode Style) -->
+                     <div class="language-switch">
+                        <label style="margin-bottom: 0; margin-right: 10px;" data-translate="modal.addAI.languageSwitchLabel">Display Language:</label>
+                        <button type="button" id="addAILangSwitchEN" class="lang-button" data-translate="modal.addAI.langSwitchEN">EN</button>
+                        <button type="button" id="addAILangSwitchZH" class="lang-button" data-translate="modal.addAI.langSwitchZH">ZH</button> 
+                    </div>
+                    <!-- Icon Input -->
+                    <div class="form-field icon-input-container">
+                        <label for="addItemIcon" data-translate="modal.addAI.iconLabel">Icon URL (Optional):</label>
+                        <input type="url" id="addItemIcon" name="icon" placeholder="https://...">
+                    </div>
+                </div>
 
-            <form id="addAIForm">
-                <!-- Row 1: Name & Release Date -->
-                <div class="form-row">
-                    <div class="form-field-group col-70"> <!-- Name Column -->
-                        <!-- Bilingual Name -->
-                        <div id="addItemNameENContainer" style="display: none;">
+                <!-- Row 2: Name (EN/ZH) + Release Date -->
+                <div class="modal-row">
+                    <!-- Name Inputs (EN/ZH) -->
+                    <div class="form-field name-input-container">
+                         <div id="addNameENContainer" style="display: none;">
                             <label for="addItemNameEN" data-translate="modal.addAI.nameEnLabel">Name (EN):</label>
                             <input type="text" id="addItemNameEN" name="name_en" required>
                         </div>
-                        <div id="addItemNameZHContainer">
+                        <div id="addNameZHContainer">
                             <label for="addItemNameZH" data-translate="modal.addAI.nameZhLabel">Name (ZH):</label>
                             <input type="text" id="addItemNameZH" name="name_zh" required>
                         </div>
                     </div>
-                    <div class="form-field-group col-30"> <!-- Date Column -->
-                        <!-- Release Date -->
+                    <!-- Release Date Input -->
+                    <div class="form-field release-date-container">
                         <label data-translate="modal.addAI.releaseDateLabel">Release Date (Optional):</label>
                         <div class="date-inputs">
-                            <select id="addItemReleaseMonth" name="releaseMonth">
-                                <option value="">Month</option>
-                                <!-- Options 1-12 -->
-                                <option value="01">Jan</option>
-                                <option value="02">Feb</option>
-                                <option value="03">Mar</option>
-                                <option value="04">Apr</option>
-                                <option value="05">May</option>
-                                <option value="06">Jun</option>
-                                <option value="07">Jul</option>
-                                <option value="08">Aug</option>
-                                <option value="09">Sep</option>
-                                <option value="10">Oct</option>
-                                <option value="11">Nov</option>
-                                <option value="12">Dec</option>
-                            </select>
-                            <input type="number" id="addItemReleaseYear" name="releaseYear" placeholder="Year" min="1970" max="2099">
+                            <input type="number" id="addItemReleaseMonth" name="release_month" min="1" max="12" placeholder="MM">
+                            <input type="number" id="addItemReleaseYear" name="release_year" min="1970" max="2099" placeholder="YYYY">
                         </div>
                     </div>
                 </div>
 
-                <!-- Row 2: Icon & Website -->
-                <div class="form-row">
-                    <div class="form-field-group col-50"> <!-- Icon Column -->
-                        <!-- Icon -->
-                        <label for="addItemIcon" data-translate="modal.addAI.iconLabel">Icon URL (Optional):</label>
-                        <input type="url" id="addItemIcon" name="icon">
-                    </div>
-                    <div class="form-field-group col-50"> <!-- Website Column -->
-                        <!-- Tool Website -->
+                <!-- Row 3: Website URL -->
+                <div class="modal-row">
+                    <div class="form-field full-width">
                         <label for="addItemToolWebsite" data-translate="modal.addAI.websiteUrlLabel">Tool Website (Optional):</label>
-                        <input type="url" id="addItemToolWebsite" name="toolWebsite">
+                        <input type="url" id="addItemToolWebsite" name="toolWebsite" placeholder="https://...">
                     </div>
                 </div>
 
-                <!-- Description Fields -->
-                <div id="addDescriptionFields"> 
-                    <div class="description-field" id="addDescENContainer" style="display: none;">
-                        <label for="addItemDescriptionEN" data-translate="modal.addAI.descriptionEnLabel">Description (EN):</label>
-                        <textarea id="addItemDescriptionEN" name="description_en" rows="5"></textarea>
-                    </div>
-                    <div class="description-field" id="addDescZHContainer"> 
-                        <label for="addItemDescriptionZH" data-translate="modal.addAI.descriptionZhLabel">Description (ZH):</label>
-                        <textarea id="addItemDescriptionZH" name="description_zh" rows="5"></textarea>
+                <!-- Row 4: Features Input -->
+                <div class="modal-row">
+                    <div class="features-section-container full-width">
+                        <div class="features-header">
+                            <h3 data-translate="modal.features.title">Feature Ratings</h3>
+                            <!-- Add Feature button added by JS -->
+                        </div>
+                        <div id="addFeaturesSection" class="features-section">
+                            <!-- Feature rows container added by JS -->
+                        </div>
                     </div>
                 </div>
 
-                <!-- Markdown Preview -->
-                <div class="markdown-preview-container">
-                    <label data-translate="modal.addAI.markdownPreviewLabel">Description Preview</label> 
-                    <div id="addMarkdownPreview" class="markdown-preview"></div>
+                <!-- Row 5: Description Input -->
+                <div class="modal-row">
+                    <div class="description-container full-width">
+                        <div id="addDescriptionFields">
+                            <div class="description-field" id="addDescENContainer" style="display: none;">
+                                <label for="addItemDescriptionEN" data-translate="modal.addAI.descriptionEnLabel">Description (EN):</label>
+                                <textarea id="addItemDescriptionEN" name="description_en" rows="5"></textarea>
+                            </div>
+                            <div class="description-field" id="addDescZHContainer">
+                                <label for="addItemDescriptionZH" data-translate="modal.addAI.descriptionZhLabel">Description (ZH):</label>
+                                <textarea id="addItemDescriptionZH" name="description_zh" rows="5"></textarea>
+                            </div>
+                        </div>
+                        <div class="markdown-preview-container">
+                            <label data-translate="modal.addAI.markdownPreviewLabel">Description Preview</label>
+                            <div id="addMarkdownPreview" class="markdown-preview"></div>
+                        </div>
+                    </div>
                 </div>
+            </form> <!-- End Add Mode Form -->
 
-                <!-- Modal Actions -->
-                <div class="modal-actions">
-                    <button type="submit" class="btn-primary" data-translate="modal.addAI.confirmButton">Confirm Add</button>
-                    <button type="button" id="cancelAddAI" class="btn-secondary" data-translate="modal.addAI.cancelButton">Cancel</button>
-                </div>
-            </form>
+            <!-- Modal Actions -->
+            <div class="modal-actions">
+                <button type="submit" form="addAIForm" class="btn-primary" data-translate="modal.addAI.confirmButton">Confirm Add</button>
+                <button type="button" id="cancelAddAI" class="btn-secondary close-button" data-translate="modal.addAI.cancelButton">Cancel</button> 
+            </div>
         </div>
     </div>
     
@@ -159,132 +161,151 @@
             <span class="close-button" id="closeEditModal">&times;</span>
             <h2 data-translate="modal.editAI.title">Edit AI Tool</h2>
 
-            <!-- Moved Language Switch to Top -->
-            <div class="language-switch" style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #444;">
-                <label style="margin-bottom: 0; margin-right: 10px;" data-translate="modal.editAI.languageSwitchLabel">Display Language:</label>
-                <button type="button" id="langSwitchEN" class="lang-button" data-translate="modal.editAI.langSwitchEN">EN</button>
-                <button type="button" id="langSwitchZH" class="lang-button active" data-translate="modal.editAI.langSwitchZH">ZH</button> 
+            <!-- Hidden input for item ID -->
+            <input type="hidden" id="editItemId">
+
+            <!-- Read Only View -->
+            <div class="read-only-section read-only-element">
+                <!-- Row 1: Language Switch & Icon Display -->
+                <div class="modal-row top-row">
+                    <div class="language-switch">
+                        <label style="margin-bottom: 0; margin-right: 10px;" data-translate="modal.editAI.languageSwitchLabel">Display Language:</label>
+                        <button type="button" id="readOnlyLangSwitchEN" class="lang-button" data-translate="modal.editAI.langSwitchEN">EN</button>
+                        <button type="button" id="readOnlyLangSwitchZH" class="lang-button active" data-translate="modal.editAI.langSwitchZH">ZH</button>
+                    </div>
+                    <div id="readOnlyPairIcon" class="read-only-icon-block read-only-pair">
+                        <div class="value-container"> <!-- Content (img or text) added by JS --> </div>
+                    </div>
+                </div>
+
+                <!-- Row 2: Name & Release Date Display -->
+                <div class="modal-row">
+                    <div id="readOnlyPairName" class="read-only-pair col-80">
+                        <label id="readOnlyNameLabel" data-translate="modal.editAI.readOnlyNameZhLabel">AI Name (ZH):</label>
+                        <div class="value-container"><span id="readOnlyName"></span></div>
+                    </div>
+                    <div id="readOnlyPairDate" class="read-only-pair col-20">
+                        <label data-translate="modal.editAI.releaseDateLabel">Release Date:</label>
+                        <div class="value-container"><span id="readOnlyReleaseDate"></span></div>
+                    </div>
+                </div>
+
+                <!-- Row 3: Website Link Display -->
+                <div class="modal-row">
+                    <div id="readOnlyPairToolWebsite" class="read-only-pair full-width">
+                        <label data-translate="modal.editAI.websiteUrlLabel">Tool Website:</label>
+                        <div class="value-container"> <!-- Content (a or span) added by JS --> </div>
+                    </div>
+                </div>
+
+                <!-- Row 4: Features Display -->
+                <div class="modal-row">
+                    <div class="features-section-container full-width">
+                        <h3 data-translate="modal.features.title">Feature Ratings</h3>
+                        <div id="readOnlyFeaturesSection" class="features-section read-only">
+                            <!-- Read-only feature ratings added by JS -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Row 5: Description Display -->
+                <div class="modal-row">
+                    <div class="description-container full-width">
+                         <div class="markdown-preview-container">
+                            <label data-translate="modal.editAI.markdownPreviewLabel">Description Preview</label>
+                            <div id="readOnlyMarkdownPreview" class="markdown-preview read-only-preview"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <form id="editAIForm">
-                <input type="hidden" id="editItemId">
-                
-                <!-- Edit Mode Fields -->
-                <div class="edit-mode-section edit-mode-element">
-                    <!-- Row 1: Name & Release Date -->
-                    <div class="form-row">
-                        <div class="form-field-group col-70"> <!-- Name Column -->
-                            <!-- Bilingual Name Inputs -->
-                            <div id="nameENContainer">
-                                <label for="editItemNameEN" data-translate="modal.editAI.nameEnLabel">Name (English):</label>
-                                <input type="text" id="editItemNameEN" required>
-                            </div>
-                            <div id="nameZHContainer">
-                                <label for="editItemNameZH" data-translate="modal.editAI.nameZhLabel">AI Name (ZH):</label>
-                                <input type="text" id="editItemNameZH" required>
-                            </div>
+            <!-- Edit Mode Form -->
+            <form id="editAIForm" class="edit-mode-section edit-mode-element" style="display: none;">
+                <!-- Row 1: Language Switch & Icon Input -->
+                <div class="modal-row top-row">
+                    <div class="language-switch">
+                        <label style="margin-bottom: 0; margin-right: 10px;" data-translate="modal.editAI.languageSwitchLabel">Display Language:</label>
+                        <button type="button" id="editLangSwitchEN" class="lang-button" data-translate="modal.editAI.langSwitchEN">EN</button>
+                        <button type="button" id="editLangSwitchZH" class="lang-button active" data-translate="modal.editAI.langSwitchZH">ZH</button>
+                    </div>
+                    <div class="form-field-group icon-input-group">
+                        <label for="editItemIcon" data-translate="modal.editAI.imageUrlLabel">Icon URL:</label>
+                        <input type="url" id="editItemIcon" name="icon">
+                    </div>
+                </div>
+
+                <!-- Row 2: Name & Release Date Input -->
+                <div class="modal-row">
+                    <div class="form-field-group col-80">
+                        <div id="editNameENContainer" style="display: none;">
+                            <label for="editItemNameEN" data-translate="modal.editAI.nameEnLabel">Name (EN):</label>
+                            <input type="text" id="editItemNameEN" name="name_en" required>
                         </div>
-                        <div class="form-field-group col-30"> <!-- Date Column -->
-                             <!-- Release Date Input -->
-                            <label data-translate="modal.editAI.releaseDateLabel">Release Date:</label>
-                            <div class="date-inputs">
-                                <select id="editItemReleaseMonth" name="releaseMonth">
-                                    <option value="">Month</option>
-                                    <!-- Options 1-12 -->
-                                    <option value="01">Jan</option>
-                                    <option value="02">Feb</option>
-                                    <option value="03">Mar</option>
-                                    <option value="04">Apr</option>
-                                    <option value="05">May</option>
-                                    <option value="06">Jun</option>
-                                    <option value="07">Jul</option>
-                                    <option value="08">Aug</option>
-                                    <option value="09">Sep</option>
-                                    <option value="10">Oct</option>
-                                    <option value="11">Nov</option>
-                                    <option value="12">Dec</option>
-                                </select>
-                                <input type="number" id="editItemReleaseYear" name="releaseYear" placeholder="Year" min="1970" max="2099">
-                            </div>
+                        <div id="editNameZHContainer">
+                            <label for="editItemNameZH" data-translate="modal.editAI.nameZhLabel">Name (ZH):</label>
+                            <input type="text" id="editItemNameZH" name="name_zh" required>
                         </div>
                     </div>
-
-                    <!-- Row 2: Icon & Website -->
-                    <div class="form-row">
-                        <div class="form-field-group col-50"> <!-- Icon Column -->
-                            <!-- Icon Input -->
-                            <label for="editItemIcon" data-translate="modal.editAI.imageUrlLabel">Icon URL:</label>
-                            <input type="url" id="editItemIcon">
-                        </div>
-                        <div class="form-field-group col-50"> <!-- Website Column -->
-                             <!-- Tool Website Input -->
-                             <label for="editItemToolWebsite" data-translate="modal.editAI.websiteUrlLabel">Tool Website:</label>
-                            <input type="url" id="editItemToolWebsite">
-                        </div>
-                    </div>
-
-                    <!-- Description Fields -->
-                    <div id="descriptionFields">
-                        <div class="description-field" id="descENContainer">
-                            <label for="editItemDescriptionEN" data-translate="modal.editAI.descriptionEnLabel">Description (EN):</label>
-                            <textarea id="editItemDescriptionEN" rows="5"></textarea>
-                        </div>
-                        <div class="description-field" id="descZHContainer"> 
-                            <label for="editItemDescriptionZH" data-translate="modal.editAI.descriptionZhLabel">Description (ZH):</label>
-                            <textarea id="editItemDescriptionZH" rows="5"></textarea>
+                    <div class="form-field-group col-20">
+                        <label data-translate="modal.editAI.releaseDateLabel">Release Date:</label>
+                        <div class="date-inputs">
+                            <select id="editItemReleaseMonth" name="releaseMonth">
+                               <option value="">Month</option> <option value="01">Jan</option> <option value="02">Feb</option> <option value="03">Mar</option> <option value="04">Apr</option> <option value="05">May</option> <option value="06">Jun</option> <option value="07">Jul</option> <option value="08">Aug</option> <option value="09">Sep</option> <option value="10">Oct</option> <option value="11">Nov</option <option value="12">Dec</option>
+                            </select>
+                            <input type="number" id="editItemReleaseYear" name="releaseYear" placeholder="Year" min="1970" max="2099">
                         </div>
                     </div>
                 </div>
 
-                 <!-- Read Only Display -->
-                 <div class="read-only-section read-only-element">
-                    <!-- Row 1: Name & Release Date -->
-                    <div class="read-only-row">
-                        <!-- English Name Pair (Hidden if ZH) -->
-                        <div id="readOnlyPairEN" class="read-only-pair col-70">
-                            <label data-translate="modal.editAI.readOnlyNameEnLabel">AI Name (EN):</label>
-                            <div class="value-container"> <span id="displayNameEN"></span> </div>
-                        </div>
-                        <!-- Chinese Name Pair (Hidden if EN) -->
-                        <div id="readOnlyPairZH" class="read-only-pair col-70">
-                            <label data-translate="modal.editAI.readOnlyNameZhLabel">AI Name (ZH):</label>
-                            <div class="value-container"> <span id="displayNameZH"></span> </div>
-                        </div>
-                         <!-- Release Date Pair (Always Visible)-->
-                        <div id="readOnlyPairReleaseDate" class="read-only-pair col-30">
-                            <label data-translate="modal.editAI.releaseDateLabel">Release Date:</label>
-                            <div class="value-container"> <span id="displayReleaseDate"></span> </div> <!-- Keep single span for YYYY-MM -->
-                        </div>
+                <!-- Row 3: Website URL Input -->
+                <div class="modal-row">
+                    <div class="form-field-group full-width">
+                        <label for="editItemToolWebsite" data-translate="modal.editAI.websiteUrlLabel">Tool Website:</label>
+                        <input type="url" id="editItemToolWebsite" name="toolWebsite">
                     </div>
-
-                    <!-- Row 2: Icon & Website -->
-                    <div class="read-only-row">
-                        <!-- Icon URL Pair -->
-                        <div id="readOnlyPairIcon" class="read-only-pair col-50"> <!-- Icon Column -->
-                            <label data-translate="modal.editAI.readOnlyIconLabel">Icon URL:</label>
-                            <div class="value-container"> <span id="displayIconURL"></span> </div>
-                        </div>
-                         <!-- Tool Website Pair -->
-                         <div id="readOnlyPairToolWebsite" class="read-only-pair col-50"> <!-- Website Column -->
-                             <label data-translate="modal.editAI.websiteUrlLabel">Tool Website:</label>
-                             <div class="value-container"> <span id="displayToolWebsite"></span> </div>
-                         </div>
-                    </div>
-                 </div>
-
-                <!-- Markdown Preview (Always visible) -->
-                <div class="markdown-preview-container">
-                    <label data-translate="modal.editAI.markdownPreviewLabel">Description Preview</label>
-                    <div id="markdownPreview" class="markdown-preview"></div>
                 </div>
 
-                <!-- Modal Actions -->
-                <div class="modal-actions">
-                    <button type="button" id="editModeBtn" class="btn-secondary read-only-element" data-translate="modal.editAI.editButton">Edit</button> 
-                    <button type="submit" class="btn-primary edit-mode-element" data-translate="modal.editAI.saveButton">Save Changes</button>
-                    <button type="button" id="cancelEdit" class="btn-secondary edit-mode-element" data-translate="modal.editAI.cancelButton">Cancel</button>
+                <!-- Row 4: Features Input -->
+                <div class="modal-row">
+                    <div class="features-section-container full-width">
+                        <!-- NEW: Header for Title + Add Button (Edit Mode) -->
+                        <div class="features-header">
+                            <h3 data-translate="modal.features.title">Feature Ratings</h3>
+                            <!-- Add Feature button will be appended here by JS -->
+                        </div>
+                        <div id="editFeaturesSectionEdit" class="features-section">
+                            <!-- Feature rows container added by JS -->
+                        </div> <!-- Close #editFeaturesSectionEdit -->
+                    </div> <!-- Close .features-section-container -->
+                </div> <!-- Close .modal-row for features -->
+
+                <!-- Row 5: Description Input -->
+                <div class="modal-row">
+                    <div class="description-container full-width">
+                        <div id="editDescriptionFields">
+                            <div class="description-field" id="editDescENContainer" style="display: none;">
+                                <label for="editItemDescriptionEN" data-translate="modal.editAI.descriptionEnLabel">Description (EN):</label>
+                                <textarea id="editItemDescriptionEN" name="description_en" rows="5"></textarea>
+                            </div>
+                            <div class="description-field" id="editDescZHContainer">
+                                <label for="editItemDescriptionZH" data-translate="modal.editAI.descriptionZhLabel">Description (ZH):</label>
+                                <textarea id="editItemDescriptionZH" name="description_zh" rows="5"></textarea>
+                            </div>
+                        </div>
+                        <div class="markdown-preview-container">
+                            <label data-translate="modal.editAI.markdownPreviewLabel">Description Preview</label>
+                            <div id="editMarkdownPreview" class="markdown-preview"></div>
+                        </div>
+                    </div>
                 </div>
-            </form>
+            </form> <!-- End Edit Mode Form -->
+
+            <!-- Modal Actions -->
+            <div class="modal-actions">
+                <button type="button" id="editModeBtn" class="btn-secondary read-only-element" data-translate="modal.editAI.editButton">Edit</button>
+                <button type="submit" form="editAIForm" class="btn-primary edit-mode-element" data-translate="modal.editAI.saveButton" style="display: none;">Save Changes</button>
+                <button type="button" id="cancelEdit" class="btn-secondary edit-mode-element" data-translate="modal.editAI.cancelButton" style="display: none;">Cancel</button>
+            </div>
         </div>
     </div>
 
@@ -333,6 +354,29 @@
                     <button type="button" id="cancel-add-tier-btn" class="btn-secondary close-button" data-translate="modal.addTier.cancelButton">Cancel</button> 
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- NEW: Feature Selection Modal -->
+    <div id="featureSelectionModal" class="modal">
+        <div class="modal-content edit-modal-content"> <!-- Re-use existing styles -->
+            <span class="close-button" id="closeFeatureSelectModal">&times;</span>
+            <h2 data-translate="modal.selectFeatures.title">Select Features to Add</h2>
+            
+            <div id="availableFeaturesList" class="features-selection-list">
+                <!-- Available features will be populated here by JS -->
+                <!-- Example item structure:
+                <div class="feature-select-item">
+                    <input type="checkbox" id="select-feature-{featureId}" data-feature-id="{featureId}">
+                    <label for="select-feature-{featureId}">{Feature Name}</label>
+                </div> 
+                -->
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" id="confirmFeatureSelection" class="btn-primary" data-translate="modal.selectFeatures.confirmButton">Confirm Add</button>
+                <button type="button" id="cancelFeatureSelection" class="btn-secondary">Cancel</button>
+            </div>
         </div>
     </div>
 

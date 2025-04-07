@@ -7,6 +7,10 @@ import { settings } from './config.js';
 import { getCurrentTranslations, updateStaticText, loadLanguage, setLanguage } from './languageManager.js'; 
 import { addAIItem } from './aiToolManagement.js'; // Import the addAIItem function
 import { initDragAndDrop } from './dragDrop.js'; // Import initDragAndDrop instead
+// Import feature functions
+import { getAllFeatures } from './featureManagement.js';
+// NEW: Import the setup function for the Add AI modal
+import { setupAddAIToolModal } from './addAIToolModal.js';
 
 // Render a single AI item
 export function renderAIItem(item, container) {
@@ -49,7 +53,10 @@ export function renderAIItem(item, container) {
 // Render all AI items in the pool
 export function renderAIPool(items, container) {
     container.innerHTML = ''; // Clear existing items
-    items.forEach(item => renderAIItem(item, container));
+    items.forEach(item => {
+        const itemElement = renderAIItem(item); // Get the element
+        container.appendChild(itemElement);      // Append it!
+    }); 
 }
 
 // Render a single tier row
@@ -305,267 +312,30 @@ export function setupModals(addTierCallback) {
     }
 }
 
-// Setup Add Custom AI functionality
-export function setupAddCustomAI(aiToolManager) {
-    console.log("[setupAddCustomAI] Function called."); // Log: Function entry
-
-    const modal = document.getElementById('add-ai-modal');
-    const modalContent = modal.querySelector('.modal-content'); 
-    const openModalBtn = document.getElementById('add-custom-ai-btn');
-    const closeModalBtn = document.getElementById('cancelAddAI');
-    const form = document.getElementById('addAIForm');
-    const langSwitchEN = document.getElementById('addAILangSwitchEN');
-    const langSwitchZH = document.getElementById('addAILangSwitchZH');
-    const nameENContainer = document.getElementById('addItemNameENContainer');
-    const nameZHContainer = document.getElementById('addItemNameZHContainer');
-    const descENContainer = document.getElementById('addDescENContainer');
-    const descZHContainer = document.getElementById('addDescZHContainer');
-    const nameENInput = document.getElementById('addItemNameEN');
-    const nameZHInput = document.getElementById('addItemNameZH');
-    const iconInput = document.getElementById('addItemIcon');
-    const toolWebsiteInput = document.getElementById('addItemToolWebsite');
-    const releaseMonthInput = document.getElementById('addItemReleaseMonth');
-    const releaseYearInput = document.getElementById('addItemReleaseYear');
-    const descENTextarea = document.getElementById('addItemDescriptionEN');
-    const descZHTextarea = document.getElementById('addItemDescriptionZH');
-    const markdownPreview = document.getElementById('addMarkdownPreview'); 
-
-    // Log: Element checks (Detailed)
-    console.log(`[setupAddCustomAI] modal: ${!!modal}`);
-    console.log(`[setupAddCustomAI] openModalBtn: ${!!openModalBtn}`);
-    console.log(`[setupAddCustomAI] closeModalBtn: ${!!closeModalBtn}`);
-    console.log(`[setupAddCustomAI] form: ${!!form}`);
-    console.log(`[setupAddCustomAI] langSwitchEN: ${!!langSwitchEN}`);
-    console.log(`[setupAddCustomAI] langSwitchZH: ${!!langSwitchZH}`);
-    console.log(`[setupAddCustomAI] nameENContainer: ${!!nameENContainer}`);
-    console.log(`[setupAddCustomAI] nameZHContainer: ${!!nameZHContainer}`);
-    console.log(`[setupAddCustomAI] descENContainer: ${!!descENContainer}`);
-    console.log(`[setupAddCustomAI] descZHContainer: ${!!descZHContainer}`);
-    console.log(`[setupAddCustomAI] nameENInput: ${!!nameENInput}`);
-    console.log(`[setupAddCustomAI] nameZHInput: ${!!nameZHInput}`);
-    console.log(`[setupAddCustomAI] iconInput: ${!!iconInput}`);
-    console.log(`[setupAddCustomAI] toolWebsiteInput: ${!!toolWebsiteInput}`);
-    console.log(`[setupAddCustomAI] releaseMonthInput: ${!!releaseMonthInput}`);
-    console.log(`[setupAddCustomAI] releaseYearInput: ${!!releaseYearInput}`);
-    console.log(`[setupAddCustomAI] descENTextarea: ${!!descENTextarea}`);
-    console.log(`[setupAddCustomAI] descZHTextarea: ${!!descZHTextarea}`);
-    console.log(`[setupAddCustomAI] markdownPreview: ${!!markdownPreview}`);
-
-
-    if (!modal || !openModalBtn || !closeModalBtn || !form || !langSwitchEN || !langSwitchZH || 
-        !nameENContainer || !nameZHContainer || !descENContainer || !descZHContainer || 
-        !nameENInput || !nameZHInput || !iconInput || !toolWebsiteInput || !releaseMonthInput ||
-        !releaseYearInput || !descENTextarea || !descZHTextarea || !markdownPreview) {
-        console.error("Add Custom AI Modal: One or more required elements not found. Aborting setup.");
-        // Log missing elements for detailed debugging
-        console.log({modal, openModalBtn, closeModalBtn, form, langSwitchEN, langSwitchZH,
-                     nameENContainer, nameZHContainer, descENContainer, descZHContainer,
-                     nameENInput, nameZHInput, iconInput, toolWebsiteInput,
-                     releaseMonthInput, releaseYearInput, // New Date
-                     descENTextarea, descZHTextarea, markdownPreview});
-        return; 
-    }
-
-    // --- Helper function to update markdown preview ---
-    const updatePreview = (text, previewId) => {
-        if (previewId) {
-            const previewElement = document.getElementById(previewId);
-            if (previewElement) {
-                try {
-                    previewElement.innerHTML = marked.parse(text || ''); // Use marked.parse
-                } catch (error) {
-                    console.error('Error parsing markdown:', error);
-                    previewElement.innerHTML = '<p style="color: red;">Error rendering preview.</p>';
-                }
-            }
-        }
-    };
-
-    // --- NEW Local Language Switching Function (Self-Reliant) ---
-    const switchLanguage = async (targetLang) => {
-        console.log(`[AddAI Modal switchLanguage] Switching to ${targetLang}`);
-        const isEN = targetLang === 'EN';
-        const langCode = isEN ? 'en' : 'zh';
-
-        // 1. Update data-language attribute on the modal content for CSS visibility
-        if (modalContent) {
-            modalContent.dataset.language = langCode;
-        } else {
-            console.error("[AddAI Modal switchLanguage] modalContent not found!");
-            return; // Exit if content area isn't found
-        }
-        
-        // Save the selected language to localStorage for persistence
-        localStorage.setItem('lastAddAIModalLanguage', targetLang);
-
-        // 2. Update THIS modal's button active states DIRECTLY
-        langSwitchEN.classList.toggle('active', isEN);
-        langSwitchZH.classList.toggle('active', !isEN);
-
-        // 3. Toggle visibility of language-specific containers
-        nameENContainer.style.display = isEN ? 'block' : 'none';
-        nameZHContainer.style.display = isEN ? 'none' : 'block';
-        descENContainer.style.display = isEN ? 'block' : 'none';
-        descZHContainer.style.display = isEN ? 'none' : 'block';
-
-        // 4. Update the preview based on the active language's description textarea
-        const previewText = isEN ? descENTextarea.value : descZHTextarea.value;
-        updatePreview(previewText || '', 'addMarkdownPreview');
-        
-        // 5. Load the correct language file
-        try {
-            await loadLanguage(langCode); // Ensures the translations are loaded
-        } catch (error) {
-            console.error(`[AddAI Modal switchLanguage] Error loading language ${langCode}:`, error);
-            // Optionally handle the error, maybe show a message
-        }
-
-        // 6. Re-apply translations ONLY to THIS modal
-        const currentLangData = getCurrentTranslations(); 
-        if (currentLangData) {
-            console.log(`[AddAI Modal switchLanguage] Re-applying static text for language: ${langCode}`);
-            updateStaticText(currentLangData, modal); // Pass the specific modal element
-        } else {
-            console.warn(`[AddAI Modal switchLanguage] Could not get translations to update modal for language: ${langCode}`);
-        }
-    };
-
-    // Add event listeners for language switching (using the NEW local function)
-    if (langSwitchEN) {
-        langSwitchEN.addEventListener('click', () => switchLanguage('EN'));
-    }
-    if (langSwitchZH) {
-        langSwitchZH.addEventListener('click', () => switchLanguage('ZH'));
-    }
-
-    // Add event listeners for real-time markdown preview updates
-    descENTextarea.addEventListener('input', () => {
-        // Only update preview if English is the active language
-        if (modalContent.dataset.language === 'en') {
-            updatePreview(descENTextarea.value || '', 'addMarkdownPreview');
-        }
-    });
+// NEW setupAddCustomAI - delegates to the new module
+export function setupAddCustomAI(addCallback) {
+    console.log("[ui.js setupAddCustomAI] Delegating setup to addAIToolModal.js...");
     
-    descZHTextarea.addEventListener('input', () => {
-        // Only update preview if Chinese is the active language
-        if (modalContent.dataset.language === 'zh') {
-            updatePreview(descZHTextarea.value || '', 'addMarkdownPreview');
-        }
-    });
+    // Call the setup function from the new module
+    setupAddAIToolModal(addCallback);
 
-    // Real-time preview update on textarea input
-    if (descENTextarea) {
-        descENTextarea.addEventListener('input', () => {
-            if (langSwitchEN.classList.contains('active')) {
-                updatePreview(descENTextarea.value, 'addMarkdownPreview');
-            }
+    // --- Open Modal Button Listener (remains here as it's outside the modal) ---
+    const openModalBtn = document.getElementById('add-custom-ai-btn');
+    const modal = document.getElementById('add-ai-modal');
+    
+    if (openModalBtn && modal) {
+        openModalBtn.addEventListener('click', () => {
+            console.log("[ui.js setupAddCustomAI] Add Custom AI button clicked!");
+            // Optionally reset form state here before showing?
+            // const form = document.getElementById('addAIForm');
+            // if (form) form.reset(); 
+            // Set default language maybe?
+            
+            modal.style.display = 'flex'; // Show the modal
         });
+    } else {
+        console.error('[ui.js setupAddCustomAI] Could not find Add AI button or modal element.');
     }
-    if (descZHTextarea) {
-        descZHTextarea.addEventListener('input', () => {
-            if (langSwitchZH.classList.contains('active')) {
-                updatePreview(descZHTextarea.value, 'addMarkdownPreview');
-            }
-        });
-    }
-
-    // Open modal listener
-    openModalBtn.addEventListener('click', () => {
-        console.log("[setupAddCustomAI] Add Custom AI button clicked!"); // Log: Click detected
-        
-        form.reset(); 
-        updatePreview(''); 
-        
-        // Use the last selected language from localStorage if available
-        // Otherwise fall back to the global language
-        const lastSelectedLang = localStorage.getItem('lastAddAIModalLanguage') || 
-                               (window.languageManager?.getCurrentLanguage() === 'en' ? 'EN' : 'ZH');
-        
-        console.log(`[setupAddCustomAI] Setting initial language via switchLanguage(${lastSelectedLang})...`);
-        
-        switchLanguage(lastSelectedLang).then(() => {
-            console.log("[setupAddCustomAI] switchLanguage .then() block executed."); // Log: Success callback
-            modal.style.display = 'flex'; // Change to flex for proper centering
-            console.log("[setupAddCustomAI] Modal display set to 'flex'."); // Updated log
-        }).catch(error => {
-            console.error("[setupAddCustomAI] switchLanguage .catch() block executed:", error); // Log: Error callback
-            // Still attempt to show the modal 
-            modal.style.display = 'flex'; // Change to flex for proper centering
-            console.warn("[setupAddCustomAI] Attempted to show modal despite error."); // Log: Error recovery attempt
-        });
-    });
-
-    // Close modal listener
-    closeModalBtn.addEventListener('click', () => {
-        modal.style.display = 'none';
-    });
-    // Also close if clicking outside the modal content
-    modal.addEventListener('click', (event) => {
-        if (event.target === modal) {
-            modal.style.display = 'none';
-        }
-    });
-
-    // Form submission listener
-    form.addEventListener('submit', (event) => {
-        event.preventDefault();
-
-        // Combine date fields
-        const month = releaseMonthInput.value;
-        const year = releaseYearInput.value;
-        let releaseDate = '';
-        if (year && month) {
-            releaseDate = `${year}-${month}`;
-        } else if (year) {
-            // Allow year only? Or require both? For now, only set if both present.
-            // releaseDate = `${year}-01`; // Default to Jan if only year?
-             console.warn('Release month or year missing, not setting releaseDate');
-        }
-
-        const newAI = {
-            id: `custom_${Date.now()}`, // Simple unique ID
-            name_en: nameENInput.value,
-            name_zh: nameZHInput.value,
-            icon: iconInput.value || settings.defaultIconUrl, // Use default if empty
-            toolWebsite: toolWebsiteInput.value,
-            releaseDate: releaseDate, // Combined YYYY-MM or empty
-            description_en: descENTextarea.value,
-            description_zh: descZHTextarea.value,
-            tier_id: '', // New items start unranked
-            isCustom: true
-        };
-
-        console.log('Adding new custom AI:', newAI);
-        addAIItem(newAI).then(success => {
-            if (success) {
-                modal.style.display = 'none';
-                form.reset();
-                
-                // Get the unranked pool container
-                const unrankedPoolContainer = document.getElementById('ai-items');
-                if (unrankedPoolContainer) {
-                    // Create and add the new AI item to the UI
-                    const aiElement = renderAIItem(newAI);
-                    unrankedPoolContainer.appendChild(aiElement);
-                    
-                    // Instead of trying to initialize drag-drop directly,
-                    // we'll reload the page to ensure all systems are properly initialized
-                    alert('AI item added successfully!');
-                    window.location.reload();
-                } else {
-                    console.error('Could not find unranked pool container');
-                    alert('AI item added but could not be displayed. Please refresh the page.');
-                }
-            } else {
-                alert('Failed to add AI item. Please try again.');
-            }
-        }).catch(error => {
-            console.error('Error adding AI item:', error);
-            alert('An error occurred while adding the AI item.');
-        });
-    });
-
-    console.log("[setupAddCustomAI] Add AI modal listeners attached.");
 }
 
 // Setup tier control buttons (add/remove tier)

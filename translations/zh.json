@@ -9,7 +9,7 @@
   "pageTitle": "小赫的AI星辰榜",
   "header": {
     "title": "<span class=\"star-icon\">✨</span> 小赫的AI星辰榜 <span class=\"star-icon\">✨</span>",
-    "subtitle": "為你的 AI 工具們評定星級！",
+    "subtitle": "AI的終極榜單！",
     "languageLabel": "語言:",
     "langSwitchZH": "中",
     "langSwitchEN": "EN"
@@ -30,7 +30,8 @@
     "shareButton": "<span class=\"icon\">🔗</span> 分享星軌",
     "exportImageButton": "<span class=\"icon\">🖼️</span> 匯出星圖",
     "resetButton": "<span class=\"icon\">🔄</span> 重設榜單",
-    "exportCsvButton": "<span class=\"icon\">📄</span> 匯出CSV記錄"
+    "exportCsvButton": "<span class=\"icon\">📄</span> 匯出CSV記錄",
+    "exportCsvButtonLabel": "匯出CSV"
   },
   "footer": {
     "text": "&copy; 2025 小赫的AI星辰榜，版權所有。"
@@ -45,14 +46,14 @@
   "modal": {
     "addTier": {
       "title": "新增等級",
-      "languageSwitchLabel": "顯示語言：",
-      "langSwitchEN": "英",
+      "languageSwitchLabel": "顯示語言",
+      "langSwitchEN": "EN",
       "langSwitchZH": "中",
-      "tierIdLabel": "等級 ID：",
+      "tierIdLabel": "等級 ID",
       "tierIdHint": "簡短標識符 (例如 S, A, B, F)",
-      "nameZhLabel": "等級名稱 (中)：",
-      "nameEnLabel": "等級名稱 (英)：",
-      "colorLabel": "顏色：",
+      "nameZhLabel": "等級名稱 (中)",
+      "nameEnLabel": "等級名稱 (英)",
+      "colorLabel": "顏色",
       "saveButton": "儲存等級",
       "cancelButton": "取消"
     },
@@ -67,24 +68,25 @@
       "cancel": "取消"
     },
     "editAI": {
-      "title": "編輯 AI 工具",
-      "languageSwitchLabel": "顯示語言：",
-      "langSwitchEN": "英",
+      "title": "AI 工具",
+      "addFeatureButton": "+ 新增功能",
+      "languageSwitchLabel": "顯示語言",
+      "langSwitchEN": "EN",
       "langSwitchZH": "中",
-      "nameZhLabel": "工具名稱 (中)：",
-      "nameEnLabel": "工具名稱 (英)：",
-      "tierLabel": "等級：",
-      "descriptionZhLabel": "描述 (中)：",
-      "descriptionEnLabel": "描述 (英)：",
-      "imageUrlLabel": "圖示 URL：",
-      "websiteUrlLabel": "工具網址：",
-      "releaseDateLabel": "公佈日期：",
+      "nameZhLabel": "工具名稱 (中)",
+      "nameEnLabel": "工具名稱 (英)",
+      "tierLabel": "等級",
+      "descriptionZhLabel": "描述 (中)",
+      "descriptionEnLabel": "描述 (英)",
+      "imageUrlLabel": "圖示 URL",
+      "websiteUrlLabel": "工具網址",
+      "releaseDateLabel": "公佈日期",
       "saveButton": "保存更改",
       "cancelButton": "取消",
-      "editButton": "编辑",
-      "readOnlyNameZhLabel": "AI 名稱 (中)：", 
-      "readOnlyNameEnLabel": "AI 名稱 (英)：",
-      "readOnlyIconLabel": "圖示 URL：",
+      "editButton": "編輯",
+      "readOnlyNameZhLabel": "AI 名稱 (中)", 
+      "readOnlyNameEnLabel": "AI 名稱 (英)",
+      "readOnlyIconLabel": "圖示 URL",
       "markdownPreviewLabel": "工具描述"
     },
     "addAI": { 
@@ -103,7 +105,15 @@
       "markdownPreviewLabel": "描述預覽",
       "confirmButton": "確認新增",
       "cancelButton": "取消"
-    }
+    },
+    "features": {
+      "title": "功能評分"
+    },
+    "selectFeatures": {
+      "title": "選擇要新增的功能",
+      "confirmButton": "確認新增"
+    },
+    "websiteUnavailable": "連結不可用"
   },
   "exportCsvButtonLabel": "匯出CSV",
   "alertNoItemsToExport": "未在層級或工具池中找到可匯出的項目。",

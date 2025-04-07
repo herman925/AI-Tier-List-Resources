@@ -42,7 +42,13 @@ async function initializeLanguage() { // Make async
     const storedLang = localStorage.getItem(LANG_STORAGE_KEY);
     const browserLang = navigator.language.startsWith('zh') ? 'zh' : 'en'; // Basic browser check
     const initialLang = storedLang || browserLang;
+    // --- DEBUG LOG --- 
+    console.log(`[initializeLanguage] Determined initialLang: ${initialLang}. Awaiting setLanguage...`);
+    // --- END DEBUG LOG ---
     await setLanguage(initialLang); // Await the async setLanguage
+    // --- DEBUG LOG --- 
+    console.log(`[initializeLanguage] setLanguage finished. currentTranslations should be populated now.`);
+    // --- END DEBUG LOG ---
 }
 
 /**
@@ -75,8 +81,9 @@ async function setLanguage(lang) { // Make async
         lang = 'zh';
     }
 
-    // 0. Load translations for the selected language
+    // 0. Load translations for the selected language FIRST
     await loadLanguage(lang); // Await loading
+    console.log(`[setLanguage] loadLanguage awaited for ${lang}. currentTranslations should be ready.`);
 
     // 1. Set HTML lang attribute
     document.documentElement.lang = lang;
@@ -92,7 +99,11 @@ async function setLanguage(lang) { // Make async
     document.documentElement.dispatchEvent(langEvent);
 
     // 5. Update static text elements using loaded translations
-    updateStaticText(currentTranslations); // Pass currentTranslations
+    if (currentTranslations && Object.keys(currentTranslations).length > 0) { // Check if translations are loaded
+        updateStaticText(currentTranslations);
+    } else {
+        console.error(`[setLanguage] Cannot call updateStaticText because currentTranslations is empty or invalid after loading ${lang}.`);
+    }
     console.log(`[LanguageManager] Language set to: ${lang}`);
 }
 
@@ -118,8 +129,8 @@ function updateButtonStates(activeLang) {
  * @param {Element} [rootElement=document] - The root element to search within. Defaults to the entire document.
  */
 function updateStaticText(langData, rootElement = document) {
-    // --- DEBUGGING START ---
     const rootId = rootElement.id || rootElement.tagName;
+    // --- DEBUGGING START ---
     console.log(`[updateStaticText] Called for root: ${rootId}`);
     if (!langData) {
         console.error(`[updateStaticText] ERROR: langData is null/undefined for root: ${rootId}`);
@@ -128,11 +139,19 @@ function updateStaticText(langData, rootElement = document) {
     // --- DEBUGGING END ---
     
     rootElement.querySelectorAll('[data-translate]').forEach(element => {
+        // *** ADD THIS CHECK ***
+        // Skip elements inside modals if doing a full-document scan
+        if (rootElement === document && element.closest('.modal')) {
+            // console.log(`[updateStaticText][${rootId}] Skipping modal element:`, element);
+            return; 
+        }
+        // *** END ADDED CHECK ***
+
         const key = element.getAttribute('data-translate');
         // --- DEBUGGING START ---
         console.log(`[updateStaticText][${rootId}] Processing key: ${key} for element:`, element);
         // --- DEBUGGING END ---
-        const translation = getNestedTranslation(langData, key);
+        const translation = getNestedTranslation(langData, key, rootId);
 
         if (translation) {
             // --- DEBUGGING START ---
@@ -155,18 +174,39 @@ function updateStaticText(langData, rootElement = document) {
 }
 
 // Function to get nested translation values
-function getNestedTranslation(langData, key) {
+function getNestedTranslation(langData, key, rootId = 'unknown') {
+    // --- DEBUG LOG for specific key ---
+    if (key === 'exportCsvButtonLabel') {
+        console.log(`%c[getNestedTranslation][${rootId}] Attempting lookup for key: ${key}`, 'color: orange;');
+        console.log(`%c[getNestedTranslation][${rootId}] langData keys: ${langData ? Object.keys(langData) : 'null/undefined'}`, 'color: orange;');
+    }
+    // --- END DEBUG LOG ---
     const keys = key.split('.');
     let text = langData;
+    let found = true;
     try {
-        for (const k of keys) {
-            text = text[k];
-            if (text === undefined) throw new Error(`Key part '${k}' not found`);
+        for (let i = 0; i < keys.length; i++) {
+            if (text && typeof text === 'object' && keys[i] in text) {
+                text = text[keys[i]];
+            } else {
+                // --- DEBUG LOG --- 
+                console.log(`[getNestedTranslation][${rootId}] Failed lookup at level ${i}, Key part: '${keys[i]}'. Keys in current object: ${text ? Object.keys(text) : 'null/undefined'}`);
+                // --- END DEBUG LOG --- 
+                found = false;
+                break;
+            }
         }
     } catch (e) {
+        console.error(`[getNestedTranslation][${rootId}] Error during lookup for key '${key}':`, e);
         text = undefined; // Ensure text is undefined if lookup failed
+        found = false; // Mark as not found on error
     }
-    return text;
+    // --- DEBUG LOG --- 
+    // if (!found || typeof text !== 'string') {
+    //     console.log(`[getNestedTranslation][${rootId}] Final lookup for key '${key}' resulted in:`, text);
+    // }
+    // --- END DEBUG LOG --- 
+    return found && typeof text === 'string' ? text : undefined;
 }
 
 /**
@@ -182,7 +222,7 @@ async function loadLanguage(lang) {
         mappedLang = 'zh'; // Map all Chinese variants to zh.json
     }
     
-    const filePath = `translations/${mappedLang}.json`; // Use mapped language code
+    const filePath = `translations/${mappedLang}.json`; // Corrected path
     try {
         const response = await fetch(filePath);
         if (!response.ok) {
@@ -190,7 +230,9 @@ async function loadLanguage(lang) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         currentTranslations = await response.json(); // Assign to currentTranslations
-        console.log(`[LanguageManager] Translations loaded for ${lang}:`, currentTranslations);
+        // --- DEBUG LOG --- 
+        console.log(`[loadLanguage] Translations loaded and assigned for ${lang}. Keys in modal:`, currentTranslations.modal ? Object.keys(currentTranslations.modal) : 'modal object missing');
+        // --- END DEBUG LOG ---
     } catch (error) {
         console.error(`[LanguageManager] Error loading language file: ${error}`);
         currentTranslations = {}; // Clear translations on error
@@ -211,4 +253,4 @@ export function getCurrentLanguageTranslations() {
 }
 
 // Export functions that need to be used by other modules
-export { setLanguage, loadLanguage, updateStaticText, getCurrentTranslations };
+export { setLanguage, loadLanguage, updateStaticText, getCurrentTranslations, getNestedTranslation };

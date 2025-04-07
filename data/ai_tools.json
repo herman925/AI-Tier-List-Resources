@@ -4,11 +4,26 @@
     "name_zh": "ChatGPT-4o",
     "name_en": "ChatGPT-4o",
     "icon": "https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg",
-    "description_zh": "#OpenAI 的最先進大型語言模型，具有強大的理解和生成能力.",
-    "description_en": "OpenAI's most advanced large language model, with powerful understanding and generation capabilities.",
-    "tier_id": "C",
+    "description_zh": "OpenAI 的通用大型語言模型，具有強大的理解和生成能力，尤其2025年4月的速率更新還有圖像生成功能後，繼續成為最強LLM之一",
+    "description_en": "OpenAI's general-purpose large language model, with powerful understanding and generation capabilities, especially after the rate update in April 2025 with image generation functionality, continuing to be one of the strongest LLMs.",
+    "tier_id": "A",
     "toolWebsite": "",
-    "releaseDate": ""
+    "releaseDate": "",
+    "features": {
+      "Feat001": 80,
+      "Feat002": 70,
+      "Feat003": 90,
+      "Feat004": 35,
+      "Feat005": 40,
+      "Feat006": 70,
+      "Feat007": 0,
+      "Feat008": 95,
+      "Feat009": 0,
+      "Feat010": 0,
+      "Feat011": 70,
+      "Feat012": 60,
+      "Feat017": 70
+    }
   },
   {
     "id": "AI002",
@@ -19,62 +34,111 @@
     "description_en": "Conversational AI assistant developed by Anthropic, focusing on safe and helpful responses.",
     "tier_id": "A",
     "toolWebsite": "",
-    "releaseDate": ""
+    "releaseDate": "",
+    "features": {}
   },
   {
     "id": "AI003",
     "name_zh": "Midjourney",
     "name_en": "Midjourney",
     "icon": "https://upload.wikimedia.org/wikipedia/commons/1/10/Midjourney_Emblem_%E2%80%94_Discord.svg",
-    "description_zh": "一個 AI 圖像生成工具，可以根據文字描述創建藝術圖像.",
+    "description_zh": "# 影像生成界的珠穆朗瑪峰\nMidjourney 可以根據自然語言的文字提示，產生符合提示的影像，功能類似 OpenAI 的 DALL-E 和 Stable Diffusion，都是基於大量影像訓練的大型 AI 模型生成影像。Midjourney 的影像生成服務從 2022 年 7 月 12 日開始公開測試，並在之後不斷改進其演算法，發布了多個新版本，到 2025 年 4 月，已經推出 Midjourney 第 7 版的 Alpha 版本。\n\n### Midjourney 技術特點 \nMidjourney 的技術基於最新的機器學習系統和大數據訓練，這些數據通過深度學習和生成對抗網絡 ( GAN ) 等先進技術進行處理，這些模型具有數十億個參數，並且能夠處理數十億張影像，藉由不斷進行的反覆訓練，對這些影像中的模式進行分析和學習，就能提高生成器的準確性和真實感。\n\n隨著像是 transformers 和 diffusion models 等 AI 技術的進步，特別是 CLIP-guided diffusion 技術，使得 AI 能夠更好地理解語言，進而實現 Midjourney 判斷文字並生成高品質影像的能力，這也讓 Midjourney 能夠生成令人驚嘆的圖像作品，成為目前少數幾個頂尖的圖像生成 AI 之一。",
     "description_en": "An AI image generation tool that creates artistic images from text descriptions.",
     "tier_id": "C",
-    "toolWebsite": "",
-    "releaseDate": ""
+    "toolWebsite": "https://alpha.midjourney.com/",
+    "releaseDate": "2025-04",
+    "features": {
+      "Feat005": 30,
+      "Feat006": 75,
+      "Feat008": 95
+    }
   },
   {
     "id": "AI004",
-    "name_zh": "Stable Diffusion",
-    "name_en": "Stable Diffusion",
-    "icon": "",
-    "description_zh": "開源的 AI 圖像生成模型，可以在本地運行.",
-    "description_en": "Open-source AI image generation model that can run locally.",
-    "tier_id": "",
-    "toolWebsite": "",
-    "releaseDate": ""
+    "name_zh": "NotebookLM",
+    "name_en": "NotebookLM",
+    "icon": "https://pbs.twimg.com/profile_images/1861084152054849547/uKBhfKBo_400x400.jpg",
+    "description_zh": "# 最強筆記神器\n以Google Gemini 2.0為基礎、被譽為「最強AI筆記神器」的NotebookLM，不僅能生成摘要，還能產出Podcast形式的音訊！它結合了Google Gemini 2.0的多模態應用能力，不僅可以處理文字，還能解析PDF、Google文件、Google簡報、YouTube影片與音訊檔案，透過AI生成摘要、彙整重點，甚至轉換為語音內容，極大化地提高資料檢索、整理的時間。\n\n## NotebookLM是什麼？\nGoogle開發的AI筆記助理，專為研究與寫作設計。它能讀取使用者上傳的文件，根據內容生成摘要、回答問題，甚至提供相關資訊，幫助整理思路與加速寫作流程。同時，NotebookLM聲明，絕不會將個人資料用於模型訓練。\n\n## NotebookLM有哪些功能、亮點？\n1. *生成摘要*：上傳 PDF、網站、YouTube 影片、音訊檔案、Google文件或 Google簡報，NotebookLM就會運用Gemini 2.0的多模態理解能力生成摘要、分析資料\n2. *即時分析資料*：NotebookLM可以協助彙整所有上傳來源的內容，快速提供、分析資訊\n3. *Audio Overview*：透過Audio Overview功能，NotebookLM可以把筆記內容、研究資料轉換成Podcast形式的音訊檔案——用戶甚至可以「加入」這個Podcast，直接跟AI主持人討論筆記內容，深化學習！\n4. *資料庫建立*：NotebookLM能為每個研究資料、寫作內容進行整理，並歸納在專屬的筆記本當中，增加蒐集、檢索資料的效率。此外，NotebookLM也能根據你所提供的資料進行回應，生成溫習內容、重要記憶點、甚至樹狀圖！",
+    "description_en": "# Top tier notebook tool",
+    "tier_id": "S",
+    "toolWebsite": "https://notebooklm.google.com/",
+    "releaseDate": "2023-07",
+    "features": {
+      "Feat001": 70,
+      "Feat002": 99,
+      "Feat003": 95,
+      "Feat004": 80,
+      "Feat005": 95,
+      "Feat009": 99,
+      "Feat014": 84,
+      "Feat015": 90
+    }
   },
   {
     "id": "AI005",
     "name_zh": "雙子星 2.5 Pro",
     "name_en": "Gemini 2.5 Pro",
     "icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcThr7qrIazsvZwJuw-uZCtLzIjaAyVW_ZrlEQ&s",
-    "description_zh": "Google 的多模態 AI 模型，可以處理文本、圖像和其他類型的數據.",
-    "description_en": "Google's multimodal AI model that can process text, images, and other data types.",
+    "description_zh": "# 谷歌的頂尖模型\nGemini 2.5 Pro是Google 2025年3月26日推出的最新AI模型，有強大的推理能力，擅長程式、數學、科學等複雜問題，是Google在Gemini 2.0 Flash Thinking之後推出的第二個思考模型。其在人類最終考試（Humanity's Last Exam）中的表現勝過競爭對手的最強模型，包括OpenAI的o3 mini和Anthropic的Claude 3.7 Sonnet等。\n\n在Gemini 2.5 Pro發布幾天後，Google宣布將此模型開放給所有用戶免費體驗，可透過Gemini的網站或Google AI Studio使用。跟上一代 Gemini 2.0 比起來，2.5 Pro 在寫程式方面的能力有明顯進步。官方說它很擅長建立視覺效果不錯的 Web App、寫一些能主動執行的程式碼，甚至還能做程式碼轉換。在一些程式碼相關的基準測試，像是 SWE-Bench Verified (拿到 63.8%) 和 LiveCodeBench v5 (70.4%)，表現都很不錯。最誇張的是，Google 還展示了一個 Demo，只用一行提示就讓 Gemini 2.5 Pro 建立了一個簡單的遊戲。\n\n# 多模態\nGoogle 的拿手好戲就是多模態AI。Gemini 作為Google的最強模型，不僅能夠理解和生成文本，還可以處理圖片、影片、音訊等多種數據類型。目前，Gemini 已整合到 Google 旗下多種產品中，如 Google Search、Google Workspace（Gmail、Docs、Slides）、Android 及 Chrome 瀏覽器，讓使用者能夠在不同平台上體驗 AI 功能。同時，Google 也推出 Gemini API，讓開發者可以將其技術應用於第三方應用程式，擴展 AI 的商業價值。\n\nGemini 2.5 Pro 天生就能理解文字、圖片、聲音、甚至影片等多種不同的資訊格式。你可以丟給它各種資料，它都能無縫地整合處理。\n\n在多模態理解能力的基準測試 MMMU 上，它也拿到了 81.7% 的高分。這讓 AI 更接近我們人類處理資訊的方式，畢竟我們也是同時用眼睛看、用耳朵聽來理解世界。未來在多媒體內容創作、分析，或是更自然的人機互動上，應該會有更多應用。\n\n# 100萬的上下文能力\n這大概是 Gemini 2.5 Pro 最讓人印象深刻的規格之一了。它擁有高達 100 萬 Token 的上下文視窗 (Context Window)，而且 Google 還計畫未來要擴展到 200 萬 Token！\n\n100 萬 Token 是什麼概念？簡單來說，你可以把將近 70 萬個英文單字或 1500 頁的文件一次丟給它處理！這讓它可以理解非常長的對話、分析整本書的內容，或者讀懂一個大型專案的全部程式碼，而不會像以前的模型一樣，讀到後面就忘了前面。\n\n在長上下文理解的基準測試 MRCR 上，Gemini 2.5 Pro 的表現也確實輾壓對手，在 128K Token 長度下拿到 91.5%，在 1M Token 長度下也有 83.1%。這對於需要處理大量資訊的任務，比如法律文件分析、學術研究、大型軟體開發等，簡直是神器。\n\n另外在 Fiction.live 網站的測試中，Gemini 2.5 Pro 也展示了它在回撤 (Retrieval) 能力上的優勢，能夠在海量資料中找到最相關的答案。他們發現 Gemini 2.5 Pro 能夠在 10 萬字以上的文本長度中，收回故事初期埋下的伏筆。在目前所有的大型語言模型中，Gemini 2.5 Pro 的回撤能力名列前茅。",
+    "description_en": "# Google's top model\nGemini 2.5 Pro is the latest AI model launched by Google on March 26, 2025, featuring powerful reasoning capabilities and excelling in complex problems related to programming, mathematics, and science. It is the second thinking model released by Google after Gemini 2.0 Flash Thinking. Its performance in Humanity's Last Exam surpassed that of the strongest competing models, including OpenAI's o3 mini and Anthropic's Claude 3.7 Sonnet.\n\nA few days after the release of Gemini 2.5 Pro, Google announced that this model would be available for free experience to all users, accessible through the Gemini website or Google AI Studio. Compared to the previous generation Gemini 2.0, the 2.5 Pro shows significant improvement in programming capabilities. The official statement claims it excels at creating visually appealing web apps, writing executable code, and even performing code conversion. In some code-related benchmark tests, such as SWE-Bench Verified (scoring 63.8%) and LiveCodeBench v5 (70.4%), its performance was quite impressive. Most remarkably, Google demonstrated a demo where Gemini 2.5 Pro created a simple game with just one line of prompt.\n\n# Multimodal\nGoogle's forte is multimodal AI. Gemini, as Google's strongest model, can not only understand and generate text but also handle various data types such as images, videos, and audio. Currently, Gemini has been integrated into various Google products, such as Google Search, Google Workspace (Gmail, Docs, Slides), Android, and the Chrome browser, allowing users to experience AI features across different platforms. At the same time, Google has also launched the Gemini API, enabling developers to apply its technology to third-party applications, expanding the commercial value of AI.\n\nGemini 2.5 Pro is inherently capable of understanding various information formats, including text, images, sounds, and even videos. You can provide it with all kinds of data, and it can seamlessly integrate and process them.\n\nIn the multimodal understanding benchmark test MMMU, it scored a high 81.7%. This brings AI closer to the way we humans process information, as we also use our eyes to see and our ears to hear to understand the world. In the future, there should be more applications in multimedia content creation, analysis, or more natural human-computer interaction.\n\n# One million contextual capabilities\nThis is probably one of the most impressive specifications of Gemini 2.5 Pro. It has a context window of up to 1 million tokens, and Google plans to expand it to 2 million tokens in the future!\n\nWhat does 1 million tokens mean? Simply put, you can feed it nearly 700,000 English words or 1,500 pages of documents at once! This allows it to understand very long conversations, analyze the content of an entire book, or comprehend all the code of a large project without forgetting the earlier parts like previous models did.\n\nIn the long context understanding benchmark MRCR, Gemini 2.5 Pro indeed outperformed its competitors, achieving 91.5% at a length of 128K tokens and 83.1% at a length of 1M tokens. This is simply a game-changer for tasks that require processing a large amount of information, such as legal document analysis, academic research, and large software development.\n\nAdditionally, in tests conducted on the Fiction.live website, Gemini 2.5 Pro demonstrated its advantages in retrieval capabilities, being able to find the most relevant answers from vast amounts of data. They found that Gemini 2.5 Pro could retrieve foreshadowing laid out in the early parts of a story within texts longer than 100,000 words. Among all large language models currently available, Gemini 2.5 Pro ranks at the top in retrieval capabilities.",
     "tier_id": "A",
-    "toolWebsite": "",
-    "releaseDate": "2025-04"
+    "toolWebsite": "https://gemini.google.com/app",
+    "releaseDate": "2025-04",
+    "features": {
+      "Feat001": 90,
+      "Feat002": 99,
+      "Feat003": 94,
+      "Feat004": 92,
+      "Feat005": 85,
+      "Feat006": 95,
+      "Feat008": 80,
+      "Feat009": 95,
+      "Feat011": 93,
+      "Feat012": 90,
+      "Feat013": 99,
+      "Feat015": 98,
+      "Feat016": 81,
+      "Feat017": 100
+    }
   },
   {
     "id": "AI006",
     "name_zh": "POE by Quora",
     "name_en": "POE by Quora",
     "icon": "https://cdn.prod.website-files.com/648e04d4bbae7004f1b35f15/65d4ebfb2cf5f7070b31f771_poe-icon.jpeg",
-    "description_zh": "問答平台巨頭Quora開發的超級AI整合器，可以使用多種AI模型，包括付費和免費的選項。",
+    "description_zh": "# 多元神器\n問答平台巨頭Quora開發的超級AI整合器，可以使用多種AI模型，包括付費和免費的選項，基本上只有你想不到的，沒有你找不到的",
     "description_en": "Super AI integrator developed by Quora, the leading Q&A platform, offering access to multiple AI models including both paid and free options.",
     "tier_id": "S",
     "toolWebsite": "",
-    "releaseDate": ""
+    "releaseDate": "",
+    "features": {
+      "Feat001": 99,
+      "Feat002": 84,
+      "Feat003": 100,
+      "Feat004": 95,
+      "Feat005": 76,
+      "Feat006": 85,
+      "Feat007": 100,
+      "Feat008": 100,
+      "Feat009": 50,
+      "Feat011": 100,
+      "Feat012": 100,
+      "Feat015": 85
+    }
   },
   {
     "id": "AI007",
     "name_zh": "Openrouter",
     "name_en": "Openrouter",
     "icon": "https://custom.typingmind.com/assets/models/openrouterai.png",
-    "description_zh": "OpenRouter 是一個統一的 API 服務平台，讓使用者透過單一介面訪問多種大型語言模型（LLM）。OpenRouter最讓人印象深刻的是其推出的「同時聊」服務，該服務整合了多種大型語言模型，如ChatGPT, Gemini, DeepSeek等，讓使用者能同時與多個 AI 聊天機器人互動",
+    "description_zh": "# 用多少，付多少的頂尖服務\nOpenRouter 是一個統一的 API 服務平台，讓使用者透過單一介面訪問多種大型語言模型（LLM）。OpenRouter最讓人印象深刻的是其推出的「同時聊」服務，該服務整合了多種大型語言模型，如ChatGPT, Gemini, DeepSeek等，讓使用者能同時與多個 AI 聊天機器人互動",
     "description_en": "OpenRouter is a unified API service platform that allows users to access multiple large language models (LLMs) through a single interface. OpenRouter is most impressive for its 'Chat Together' service, which integrates multiple large language models, such as ChatGPT, Gemini, and DeepSeek, allowing users to interact with multiple AI chatbots simultaneously.",
     "tier_id": "S",
     "toolWebsite": "https://openrouter.ai/",
-    "releaseDate": ""
+    "releaseDate": "",
+    "features": {
+      "Feat015": 100
+    }
   },
   {
     "id": "AI008",
@@ -85,7 +149,8 @@
     "description_en": "A platform that integrates multiple AI models, allowing users to access various AI services through a unified API.",
     "tier_id": "B",
     "toolWebsite": "https://deepseek.com/",
-    "releaseDate": ""
+    "releaseDate": "",
+    "features": {}
   },
   {
     "id": "AI009",
@@ -96,7 +161,8 @@
     "description_en": "High-performance open-source large language model developed by a French startup.",
     "tier_id": "",
     "toolWebsite": "",
-    "releaseDate": ""
+    "releaseDate": "",
+    "features": {}
   },
   {
     "id": "AI010",
@@ -106,8 +172,24 @@
     "description_zh": "基於 AI 的搜索引擎，提供有來源的回答.",
     "description_en": "AI-based search engine that provides answers with sources.",
     "tier_id": "S",
-    "toolWebsite": "",
-    "releaseDate": ""
+    "toolWebsite": "https://www.perplexity.ai/",
+    "releaseDate": "",
+    "features": {
+      "Feat001": 70,
+      "Feat002": 50,
+      "Feat003": 90,
+      "Feat004": 90,
+      "Feat005": 79,
+      "Feat006": 88,
+      "Feat007": 84,
+      "Feat008": 15,
+      "Feat011": 86,
+      "Feat012": 77,
+      "Feat013": 63,
+      "Feat015": 50,
+      "Feat016": 75,
+      "Feat017": 100
+    }
   },
   {
     "id": "AI011",
@@ -118,7 +200,8 @@
     "description_en": "AI programming assistant powered by OpenAI Codex, helping developers write code.",
     "tier_id": "",
     "toolWebsite": "",
-    "releaseDate": ""
+    "releaseDate": "",
+    "features": {}
   },
   {
     "id": "AI012",
@@ -129,7 +212,8 @@
     "description_en": "Google's conversational AI assistant, later renamed Gemini.",
     "tier_id": "",
     "toolWebsite": "",
-    "releaseDate": ""
+    "releaseDate": "",
+    "features": {}
   },
   {
     "id": "AI013",
@@ -140,7 +224,8 @@
     "description_en": "AI programming assistant developed by Codeium, focusing on code generation and problem-solving.",
     "tier_id": "",
     "toolWebsite": "",
-    "releaseDate": ""
+    "releaseDate": "",
+    "features": {}
   },
   {
     "id": "AI014",
@@ -151,7 +236,8 @@
     "description_en": "Free AI programming assistant providing code completion and suggestions.",
     "tier_id": "B",
     "toolWebsite": "https://yiyan.baidu.com/",
-    "releaseDate": "2025-04"
+    "releaseDate": "2025-04",
+    "features": {}
   },
   {
     "id": "AI015",
@@ -162,6 +248,71 @@
     "description_en": "A free sandbox with Google's latest models, including blackmagic-level tools like 'AI Photo Gen/Edit' and 'Stream Realtime'",
     "tier_id": "S",
     "toolWebsite": "",
-    "releaseDate": "2024-03"
+    "releaseDate": "2024-03",
+    "features": {}
+  },
+  {
+    "name_en": "Grok 3",
+    "name_zh": "Grok 3",
+    "icon": "https://play-lh.googleusercontent.com/dQRKhi30KpzG3gww3TdVLzyIAVuOAWylnAcgnEUxqfpm2A8dEt2sgApVvtKAy-DO8aI",
+    "releaseDate": "2025-02",
+    "toolWebsite": "https://grok.com/",
+    "description_en": "",
+    "description_zh": "",
+    "features": {
+      "Feat001": 88,
+      "Feat002": 75,
+      "Feat003": 86,
+      "Feat004": 95,
+      "Feat005": 80,
+      "Feat006": 95,
+      "Feat008": 92,
+      "Feat011": 85,
+      "Feat012": 60,
+      "Feat013": 96
+    },
+    "id": "AI016",
+    "tier_id": "B"
+  },
+  {
+    "name_en": "ChatGPT o3",
+    "name_zh": "ChatGPT o3",
+    "icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7UOApKPWJA3QFxOozLRUe0g71sQTLOEuTpw&s",
+    "releaseDate": "",
+    "toolWebsite": "",
+    "description_en": "",
+    "description_zh": "# 200刀都想買下去的「Deep Research」\n提起Deep Research，就想到現在的科技頂點——ChatGPT o3 （未發佈，但Deep Research 已經證實了是 o3完全體的其中一個能力的體現）什麼是 OpenAI Deep Research？簡單來說，Deep Research 就是一個能替你主動「做研究」的 AI 助手。\n\n以前我們如果要找很多資料、比對各家資訊，就得自己上網搜尋、整理，既耗時又容易漏掉重點。你甚至要手動「複製、貼上」大量的文字、檔案、連結到 ChatGPT 裡面，它才會乖乖聽話照著執行，否則它會自己瞎掰。\n\n現在，只要在 ChatGPT 裡啟動 Deep Research 模式，告訴它你想知道什麼，它就會自動上網搜尋、分析數百份資料，然後產出一份詳細的報告，連引用來源都標註得清清楚楚，超適合科技愛好者和需要做功課的朋友們！\n\n剛說了，這背後其實是由 OpenAI 最新的 o3 模型來支援，這個模型特別優化過，能夠自動搜尋、篩選資料，並且進行多步驟推理。意思就是說，AI 不再只靠記憶回答問題，而是能自己「做功課」找到最新、最全面的資訊，再整合成一份完整的報告。\n\n根據官方測試顯示，Deep Research 在多項公開評估中創下新高紀錄​，例如在綜合性難題測試 「人類的最後考驗」（Humanity's Last Exam） 中，取得 26.6% 的正確率，遠高於開源對手模型 DeepSeek-R1 的 9.4%，以及前陣子剛推出的推理模型 o3-mini-high 的 13%。\n\n很多實測過的人都表示，Deep Research 做研究的能力已經媲美大多數的碩士和博士生，甚至比很多研究生的思考脈絡還要縝密（我們竟然要跟 AI 學習「如何思考」了）。",
+    "features": {
+      "Feat001": 85,
+      "Feat002": 70,
+      "Feat004": 97,
+      "Feat005": 95,
+      "Feat006": 90,
+      "Feat016": 100,
+      "Feat017": 85
+    },
+    "id": "AI017",
+    "tier_id": "A"
+  },
+  {
+    "name_en": "Tencent Yuanbao (Hunyuan)",
+    "name_zh": "腾讯元宝（混元）",
+    "icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMpPGxQTg8cSa3MgiZGNMlVAYUfa2HZE8qdQ&s",
+    "releaseDate": "2025-03",
+    "toolWebsite": "https://yuanbao.tencent.com/",
+    "description_en": "",
+    "description_zh": "",
+    "features": {
+      "Feat001": 51,
+      "Feat002": 64,
+      "Feat003": 43,
+      "Feat004": 76,
+      "Feat005": 68,
+      "Feat006": 71,
+      "Feat015": 55,
+      "Feat017": 55
+    },
+    "id": "AI018",
+    "tier_id": ""
   }
 ]

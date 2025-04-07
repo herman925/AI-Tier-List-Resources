@@ -1,0 +1,117 @@
+[
+  {
+    "id": "Feat001",
+    "name_en": "Chat",
+    "name_zh": "聊天"
+  },
+  {
+    "id": "Feat002",
+    "name_en": "Context Length",
+    "name_zh": "上下文長度"
+  },
+  {
+    "id": "Feat003",
+    "name_en": "Multi-Modal",
+    "name_zh": "多模態"
+  },
+  {
+    "id": "Feat004",
+    "name_en": "Reasoning",
+    "name_zh": "推理能力"
+  },
+  {
+    "id": "Feat005",
+    "name_en": "Hallucination Control",
+    "name_zh": "幻覺控制" 
+  },
+  {
+    "id": "Feat006",
+    "name_en": "Prompt Following",
+    "name_zh": "指令遵循"
+  },
+  {
+    "id": "Feat007",
+    "name_en": "Custom Instructions",
+    "name_zh": "自訂指令"
+  },
+  {
+    "id": "Feat008",
+    "name_en": "Image Generation",
+    "name_zh": "圖像生成"
+  },
+  {
+    "id": "Feat009",
+    "name_en": "Audio Generation",
+    "name_zh": "音訊生成"
+  },
+  {
+    "id": "Feat010",
+    "name_en": "Video Generation",
+    "name_zh": "影片生成"
+  },
+  {
+    "id": "Feat011",
+    "name_en": "Creative Writing (EN)",
+    "name_zh": "創意寫作 (英)"
+  },
+  {
+    "id": "Feat012",
+    "name_en": "Creative Writing (ZH)",
+    "name_zh": "創意寫作 (中)"
+  },
+  {
+    "id": "Feat013",
+    "name_en": "Code Generation",
+    "name_zh": "程式碼生成"
+  },
+  {
+    "id": "Feat014",
+    "name_en": "Copiloting",
+    "name_zh": "協作能力"
+  },
+  {
+    "id": "Feat015",
+    "name_en": "Tool Collaboration",
+    "name_zh": "工具整合力"
+  },
+  {
+    "id": "Feat016",
+    "name_en": "Deep Research",
+    "name_zh": "深度搜索"
+  },
+  {
+    "id": "Feat017",
+    "name_en": "Web Search",
+    "name_zh": "網路搜索"
+  },
+  {
+    "id": "Feat018",
+    "name_en": "Transcription (English)",
+    "name_zh": "轉錄 (英文)"
+  },
+  {
+    "id": "Feat019",
+    "name_en": "Transcription (Mandarin)",
+    "name_zh": "轉錄 (中文)"
+  },
+  {
+    "id": "Feat020",
+    "name_en": "Transcription (Cantonese)",
+    "name_zh": "轉錄 (粵語)"
+  },
+  {
+    "id": "Feat021",
+    "name_en": "Music Generation",
+    "name_zh": "音樂生成"
+  },
+  {
+    "id": "Feat022",
+    "name_en": "PowerPoint Generation",
+    "name_zh": "PowerPoint 生成"
+  },
+  {
+    "id": "Feat023",
+    "name_en": "Programme Development",
+    "name_zh": "程式開發"
+  }
+] 

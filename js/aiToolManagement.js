@@ -5,9 +5,54 @@
 
 import { settings } from './config.js';
 // Import the language functions needed
-import { getCurrentTranslations, updateStaticText, loadLanguage } from './languageManager.js';
+import { getCurrentTranslations, updateStaticText, loadLanguage, getNestedTranslation } from './languageManager.js';
+// Import feature functions
+import { getAllFeatures } from './featureManagement.js';
+
+let allAIItems = []; // Cache AI items
 
 // --- Helper Functions --- //
+
+// Helper function to parse 'YYYY-MM' date string
+function parseReleaseDate(dateString) {
+    if (!dateString || !dateString.includes('-')) {
+        return { month: '', year: '' };
+    }
+    const parts = dateString.split('-');
+    return { year: parts[0] || '', month: parts[1] || '' };
+}
+
+// Helper function to build 'YYYY-MM' date string
+function buildReleaseDate(month, year) {
+    if (year && month) {
+        return `${year}-${month}`;
+    } else if (year) {
+        console.warn('Building release date with year only:', year);
+        return year; // Or maybe `${year}-00`? Or empty? Decide format.
+    } else if (month) {
+        console.warn('Building release date with month only:', month);
+        return `0000-${month}`; // Or empty? Decide format.
+    }
+    return ''; // Return empty if either is missing
+}
+
+// Helper function to collect feature scores from the DOM sliders
+function collectFeaturesFromDOM(featureContainer) {
+    const features = {};
+    if (!featureContainer) return features;
+    const rows = featureContainer.querySelectorAll('.feature-row');
+    rows.forEach(row => {
+        const featureId = row.dataset.featureId;
+        const slider = row.querySelector('input[type="range"]');
+        if (featureId && slider) {
+            const score = parseInt(slider.value, 10);
+            // Decide whether to include 0 scores or not. 
+            // For now, let's include them if the row exists.
+            features[featureId] = score;
+        }
+    });
+    return features;
+}
 
 // Helper function to update Markdown preview (accessible within the module)
 function updatePreview(text, previewElementId = 'markdownPreview') {
@@ -23,11 +68,190 @@ function updatePreview(text, previewElementId = 'markdownPreview') {
     }
 }
 
+// --- NEW Module-Level Helper Functions for Edit Modal ---
+
+// Helper to populate the entire Edit Form (Inputs)
+function populateEditForm(data) {
+    const modal = document.getElementById('editAIModal');
+    if (!modal) return;
+
+    // Simple value setting for most inputs
+    const elementsToPopulate = {
+        'editItemId': data.id,
+        'editItemIcon': data.icon,
+        'editItemNameEN': data.name_en,
+        'editItemNameZH': data.name_zh,
+        'editItemToolWebsite': data.toolWebsite,
+        'editItemDescriptionEN': data.description_en,
+        'editItemDescriptionZH': data.description_zh,
+    };
+
+    for (const id in elementsToPopulate) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.value = elementsToPopulate[id] || '';
+        } else {
+            console.warn(`[populateEditForm] Element #${id} not found.`);
+        }
+    }
+
+    // Populate date
+    const { month, year } = parseReleaseDate(data.releaseDate);
+    const editItemReleaseMonth = document.getElementById('editItemReleaseMonth');
+    const editItemReleaseYear = document.getElementById('editItemReleaseYear');
+    if (editItemReleaseMonth) editItemReleaseMonth.value = month || '';
+    if (editItemReleaseYear) editItemReleaseYear.value = year || '';
+
+    // Populate features (Requires populateFeaturesForEdit)
+    const editFeaturesSectionEdit = document.getElementById('editFeaturesSectionEdit');
+    if (typeof populateFeaturesForEdit === 'function') {
+        populateFeaturesForEdit(data.features || {}, editFeaturesSectionEdit);
+    } else {
+        console.warn("[populateEditForm] populateFeaturesForEdit function not found or not available.");
+    }
+}
+
+// Helper to populate the Feature Sliders in the Edit Form
+function populateFeaturesForEdit(featuresData, containerElement) {
+    if (!containerElement) return;
+    const featureRowsContainer = containerElement.querySelector('.feature-rows-container');
+    if (!featureRowsContainer) {
+        console.warn("[populateFeaturesForEdit] .feature-rows-container not found in containerElement.");
+        return;
+    }
+    featureRowsContainer.innerHTML = ''; // Clear existing feature rows
+
+    const allFeatures = getAllFeatures();
+    const modal = containerElement.closest('.modal');
+    const currentLang = modal?.querySelector('.modal-content')?.dataset.language || 'zh';
+    const toolId = modal?.querySelector('#editItemId')?.value;
+
+    // Iterate through ALL possible features to create sliders
+    allFeatures.forEach(featureDef => {
+        const featureId = featureDef.id;
+        // Check if this feature exists in the *data* being populated
+        if (Object.hasOwnProperty.call(featuresData, featureId)) {
+            const score = featuresData[featureId] || 0;
+            const editRow = createFeatureRowElement(featureId, score, featureDef, true, currentLang, toolId);
+            if (editRow) {
+                // Find correct insertion point based on global order
+                const insertBeforeElement = findFeatureInsertIndex(featureRowsContainer, featureId, allFeatures);
+                featureRowsContainer.insertBefore(editRow, insertBeforeElement);
+            }
+        }
+        // If feature is not in data, don't add a row/slider for it initially
+    });
+}
+
+// Helper to Update Read-Only Display (Non-Feature Fields)
+function updateReadOnlyDisplay(data, lang) {
+    const modal = document.getElementById('editAIModal');
+    if (!modal) return;
+    const isEN = lang === 'en';
+    const currentLangData = getCurrentTranslations() || {};
+
+    // Get elements (safer to get them here)
+    const readOnlyNameLabel = document.getElementById('readOnlyNameLabel');
+    const readOnlyName = document.getElementById('readOnlyName');
+    const readOnlyReleaseDate = document.getElementById('readOnlyReleaseDate');
+    const readOnlyMarkdownPreview = document.getElementById('readOnlyMarkdownPreview');
+    const readOnlyIconContainer = modal.querySelector('#readOnlyPairIcon .value-container');
+    const readOnlyWebsiteContainer = modal.querySelector('#readOnlyPairToolWebsite .value-container');
+
+    // Update Name (Label and Value)
+    const nameLabelKey = isEN ? 'modal.editAI.readOnlyNameEnLabel' : 'modal.editAI.readOnlyNameZhLabel';
+    if (readOnlyNameLabel) {
+        readOnlyNameLabel.setAttribute('data-translate', nameLabelKey);
+        readOnlyNameLabel.textContent = getNestedTranslation(currentLangData, nameLabelKey) || (isEN ? 'AI Name (EN):' : 'AI Name (ZH):');
+    }
+    if (readOnlyName) readOnlyName.textContent = isEN ? (data.name_en || 'N/A') : (data.name_zh || 'N/A');
+
+    // Update Release Date
+    if (readOnlyReleaseDate) readOnlyReleaseDate.textContent = data.releaseDate || 'N/A';
+
+    // Update Icon Display
+    if (readOnlyIconContainer) {
+        readOnlyIconContainer.innerHTML = ''; // Clear previous
+        if (data.icon) {
+            const img = document.createElement('img');
+            img.src = data.icon;
+            img.alt = `${data.name_en || data.name_zh || 'AI Tool'} Icon`;
+            img.className = 'read-only-icon-display';
+            img.onerror = () => { 
+                readOnlyIconContainer.textContent = 'Icon'; 
+                img.remove(); 
+            };
+            readOnlyIconContainer.appendChild(img);
+        } else {
+            readOnlyIconContainer.textContent = 'Icon'; // Placeholder text
+        }
+    }
+
+    // Update Tool Website Link
+    if (readOnlyWebsiteContainer) {
+        const websiteUnavailableText = getNestedTranslation(currentLangData, 'modal.websiteUnavailable') || 'Link not Available';
+        readOnlyWebsiteContainer.innerHTML = ''; // Clear previous
+        if (data.toolWebsite && (data.toolWebsite.startsWith('http://') || data.toolWebsite.startsWith('https://'))) {
+            const link = document.createElement('a');
+            link.href = data.toolWebsite;
+            link.textContent = data.toolWebsite;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.className = 'read-only-website-link';
+            readOnlyWebsiteContainer.appendChild(link);
+        } else {
+            readOnlyWebsiteContainer.textContent = websiteUnavailableText;
+        }
+    }
+
+    // Update Read-Only Markdown Preview
+    if (readOnlyMarkdownPreview) {
+        const description = isEN ? (data.description_en || '') : (data.description_zh || '');
+        readOnlyMarkdownPreview.innerHTML = marked.parse(description); // Use marked library
+    }
+}
+
+// Function to Update Edit Mode Markdown Preview
+function updateEditPreview(text) {
+    const editMarkdownPreview = document.getElementById('editMarkdownPreview');
+    if (editMarkdownPreview) {
+         editMarkdownPreview.innerHTML = marked.parse(text || '');
+    } else {
+         console.warn('[updateEditPreview] Edit markdown preview element not found.')
+    }
+}
+
+// Helper function to update Markdown preview (accessible within the module)
+// function updatePreview(text, previewElementId = 'markdownPreview') { // Keep old one just in case?
+//     const preview = document.getElementById(previewElementId);
+//     if (!preview) {
+//         console.error(`[updatePreview] Preview element #${previewElementId} not found.`);
+//         return;
+//     }
+//     if (typeof marked !== 'undefined') {
+//         preview.innerHTML = marked.parse(text || ""); // Handle null/undefined text
+//     } else {
+//         preview.innerHTML = '<p><em>Markdown preview unavailable.</em></p>';
+//     }
+// }
+
+// --- Core Functions --- //
+
 // Show the edit AI modal for a specific AI tool
 export async function showEditAIModal(aiId) {
+    // --- DEBUG LOG --- 
+    console.log(`%c[showEditAIModal START] Called for ID: ${aiId}. Checking modal and key internal elements...`, 'color: blue; font-weight: bold;');
+    const modalCheck = document.getElementById('editAIModal');
+    const idInputCheck = document.getElementById('editItemId'); // Check exists
+    const featuresEditCheck = document.getElementById('editFeaturesSectionEdit'); // Check exists
+    console.log(`[showEditAIModal START] Results:`, { modalCheck, idInputCheck, featuresEditCheck });
+    if (!modalCheck || !idInputCheck || !featuresEditCheck) {
+        console.error("[showEditAIModal START] CRITICAL: Modal or key internal element(s) not found in DOM at function start!");
+        return; 
+    }
+    // --- END DEBUG LOG ---
     try {
-        console.log(`[showEditAIModal] Called for ID: ${aiId}`); // Log entry
-        // Get the AI item data (this might call getAllAIItems internally)
+        console.log(`[showEditAIModal] Called for ID: ${aiId}`);
         const aiData = await getAIItemById(aiId);
         if (!aiData) {
             console.error(`[showEditAIModal] AI item data not found for ID: ${aiId}`);
@@ -35,113 +259,179 @@ export async function showEditAIModal(aiId) {
         }
         console.log('[showEditAIModal] Found AI data:', aiData);
         
-        // Populate the modal fields using CORRECT IDs
-        const modal = document.getElementById('editAIModal'); // CORRECT ID
-        const idInput = document.getElementById('editItemId');      // CORRECT ID
-        const iconInput = document.getElementById('editItemIcon');    // CORRECT ID
-        const descENInput = document.getElementById('editItemDescriptionEN'); // CORRECT ID
-        const descZHInput = document.getElementById('editItemDescriptionZH'); // CORRECT ID
-        const langSwitchEN = document.getElementById('langSwitchEN');       // FIXED ID (was lang-switch-en)
-        const langSwitchZH = document.getElementById('langSwitchZH');       // FIXED ID (was lang-switch-zh)
-        const descENContainer = document.getElementById('descENContainer');  // FIXED ID (was desc-en-container)
-        const descZHContainer = document.getElementById('descZHContainer');  // FIXED ID (was desc-zh-container)
-        const markdownPreview = document.getElementById('markdownPreview'); // CORRECT ID
-        // --- Added Name Inputs & Containers ---
-        const nameENInput = document.getElementById('editItemNameEN'); 
-        const nameZHInput = document.getElementById('editItemNameZH');
-        const nameENContainer = document.getElementById('nameENContainer');
-        const nameZHContainer = document.getElementById('nameZHContainer');
-        const toolWebsiteInput = document.getElementById('editItemToolWebsite');
-        // Date inputs
-        const releaseMonthInput = document.getElementById('editItemReleaseMonth');
-        const releaseYearInput = document.getElementById('editItemReleaseYear');
-        const modalContent = modal.querySelector('.modal-content'); // Get modal content div
-        const displayNameEN = document.getElementById('displayNameEN');
-        const displayNameZH = document.getElementById('displayNameZH');
-        const displayIconURL = document.getElementById('displayIconURL');
-        // Add potential read-only spans for new fields (optional, depends on HTML)
-        const displayToolWebsite = document.getElementById('displayToolWebsite');
-        const displayReleaseDate = document.getElementById('displayReleaseDate'); // Read-only span
-        
-        // Check if all elements were found
-        if (!modal || !idInput || !iconInput 
-            || !descENInput || !descZHInput || !langSwitchEN || !langSwitchZH 
-            || !descENContainer || !descZHContainer || !markdownPreview
-            || !nameENInput || !nameZHInput || !nameENContainer || !nameZHContainer
-            || !toolWebsiteInput 
-            || !releaseMonthInput || !releaseYearInput // New date inputs
-            || !modalContent || !displayNameEN || !displayNameZH || !displayIconURL 
-            || !displayReleaseDate // Check read-only span too
-            ) { 
-            console.error('[showEditAIModal] One or more modal elements not found using corrected IDs. Check HTML.');
-             // Log which elements are missing
-            console.log({ modal, idInput, iconInput, 
-                          descENInput, descZHInput, langSwitchEN, langSwitchZH, 
-                          descENContainer, descZHContainer, markdownPreview,
-                          nameENInput, nameZHInput, nameENContainer, nameZHContainer, 
-                          toolWebsiteInput, releaseMonthInput, releaseYearInput, // New date inputs
-                          modalContent, displayNameEN, displayNameZH, displayIconURL,
-                          displayToolWebsite, displayReleaseDate 
-                        });
-            return; // Stop if essential elements are missing
+        // Get feature definitions
+        const allFeatures = getAllFeatures(); 
+        if (!allFeatures || allFeatures.length === 0) {
+             console.warn("[showEditAIModal] Features not loaded or empty. Cannot display features section.");
         }
-        console.log('[showEditAIModal] All modal elements found.');
 
-        idInput.value = aiData.id;
-        iconInput.value = aiData.icon || '';
-        nameENInput.value = aiData.name_en || '';
-        nameZHInput.value = aiData.name_zh || ''; 
-        descENInput.value = aiData.description_en || '';
-        descZHInput.value = aiData.description_zh || ''; 
-        toolWebsiteInput.value = aiData.toolWebsite || ''; 
-
-        // Populate Date Inputs (split YYYY-MM)
-        const [year, month] = (aiData.releaseDate || '-').split('-');
-        releaseYearInput.value = year || '';
-        releaseMonthInput.value = month || '';
-
-        console.log('[showEditAIModal] Populated basic fields.');
+        // Get Modal Element References (Using CORRECT IDs for restructured HTML)
+        const modal = document.getElementById('editAIModal');
+        const modalContent = modal.querySelector('.modal-content');
         
-        // Populate Read-Only Spans
-        displayNameEN.textContent = aiData.name_en || 'N/A';
-        displayNameZH.textContent = aiData.name_zh || 'N/A';
-        displayIconURL.textContent = aiData.icon || 'N/A';
-        if (displayToolWebsite) displayToolWebsite.textContent = aiData.toolWebsite || 'N/A';
-        // Display date in read-only span (keep YYYY-MM format)
-        displayReleaseDate.textContent = aiData.releaseDate || 'N/A'; 
+        // Edit Mode Elements
+        const editForm = document.getElementById('editAIForm');
+        const editItemId = document.getElementById('editItemId');
+        const editItemIcon = document.getElementById('editItemIcon');
+        const editItemNameEN = document.getElementById('editItemNameEN');
+        const editItemNameZH = document.getElementById('editItemNameZH');
+        const editItemReleaseMonth = document.getElementById('editItemReleaseMonth');
+        const editItemReleaseYear = document.getElementById('editItemReleaseYear');
+        const editItemToolWebsite = document.getElementById('editItemToolWebsite');
+        const editItemDescriptionEN = document.getElementById('editItemDescriptionEN');
+        const editItemDescriptionZH = document.getElementById('editItemDescriptionZH');
+        const editFeaturesSectionEdit = document.getElementById('editFeaturesSectionEdit'); // Already checked at start
+        const editMarkdownPreview = document.getElementById('editMarkdownPreview');
+        const editLangSwitchEN = document.getElementById('editLangSwitchEN'); // For setting initial state
+        const editLangSwitchZH = document.getElementById('editLangSwitchZH'); // For setting initial state
+
+        // Read Only Display Elements
+        const readOnlyNameLabel = document.getElementById('readOnlyNameLabel');
+        const readOnlyName = document.getElementById('readOnlyName');
+        const readOnlyReleaseDate = document.getElementById('readOnlyReleaseDate');
+        const readOnlyFeaturesSection = document.getElementById('readOnlyFeaturesSection');
+        const readOnlyMarkdownPreview = document.getElementById('readOnlyMarkdownPreview');
+        const readOnlyIconContainer = modal.querySelector('#readOnlyPairIcon .value-container');
+        const readOnlyWebsiteContainer = modal.querySelector('#readOnlyPairToolWebsite .value-container');
+        const readOnlyLangSwitchEN = document.getElementById('readOnlyLangSwitchEN'); // For setting initial state
+        const readOnlyLangSwitchZH = document.getElementById('readOnlyLangSwitchZH'); // For setting initial state
+
+        // Check if all REQUIRED elements were found
+        const requiredElementsCheck = {
+            modal, modalContent, editForm,
+            editItemId, editItemIcon, editItemNameEN, editItemNameZH, editItemReleaseMonth, editItemReleaseYear, 
+            editItemToolWebsite, editItemDescriptionEN, editItemDescriptionZH, editFeaturesSectionEdit, editMarkdownPreview,
+            editLangSwitchEN, editLangSwitchZH,
+            readOnlyNameLabel, readOnlyName, readOnlyReleaseDate, readOnlyFeaturesSection, readOnlyMarkdownPreview,
+            readOnlyIconContainer, readOnlyWebsiteContainer,
+            readOnlyLangSwitchEN, readOnlyLangSwitchZH
+        };
+        let allFoundCheck = true;
+        for (const key in requiredElementsCheck) {
+            if (!requiredElementsCheck[key]) {
+                console.error(`[showEditAIModal] Element missing during setup: ${key}`);
+                allFoundCheck = false;
+            }
+        }
+        if (!allFoundCheck) {
+            console.error('[showEditAIModal] One or more modal elements not found using corrected IDs. Aborting modal display setup.');
+            // Detailed log of what was found/missing
+            console.log("Element check results:", requiredElementsCheck);
+            return; 
+        }
+        console.log('[showEditAIModal] All necessary modal elements found for population.');
+
+        // --- Populate Edit Form Fields (Hidden Initially) ---
+        editItemId.value = aiData.id;
+        editItemIcon.value = aiData.icon || '';
+        editItemNameEN.value = aiData.name_en || '';
+        editItemNameZH.value = aiData.name_zh || ''; 
+        editItemDescriptionEN.value = aiData.description_en || '';
+        editItemDescriptionZH.value = aiData.description_zh || ''; 
+        editItemToolWebsite.value = aiData.toolWebsite || ''; 
+        // Populate date inputs
+        const { month, year } = parseReleaseDate(aiData.releaseDate);
+        editItemReleaseMonth.value = month || '';
+        editItemReleaseYear.value = year || '';
+        console.log('[showEditAIModal] Populated edit form fields.');
 
         // Store original data on the modal for cancellation reset
         modal.dataset.originalData = JSON.stringify(aiData);
+        originalDataBeforeEdit = { ...aiData }; // Update module-level variable too
 
-        // Set initial language state based on localStorage or default to Chinese
-        const lastSelectedLang = localStorage.getItem('lastEditAIModalLanguage') || 'ZH';
-        modalContent.dataset.language = lastSelectedLang.toLowerCase(); // Set initial data-language attribute
-        langSwitchEN.classList.toggle('active', lastSelectedLang === 'EN');
-        langSwitchZH.classList.toggle('active', lastSelectedLang === 'ZH');
+        // --- Set Initial Language State ---
+        // Use localStorage value or default to 'zh'
+        const lastSelectedLangCode = localStorage.getItem('lastEditAIModalLanguage') || 'zh';
+        modalContent.dataset.language = lastSelectedLangCode; // Set initial data-language attribute
+        // Update BOTH sets of language buttons
+        readOnlyLangSwitchEN.classList.toggle('active', lastSelectedLangCode === 'en');
+        readOnlyLangSwitchZH.classList.toggle('active', lastSelectedLangCode === 'zh');
+        editLangSwitchEN.classList.toggle('active', lastSelectedLangCode === 'en');
+        editLangSwitchZH.classList.toggle('active', lastSelectedLangCode === 'zh');
+        console.log(`[showEditAIModal] Initial language set to: ${lastSelectedLangCode}`);
 
-        // CRITICAL: Actually load the language file that matches the button state
-        await loadLanguage(lastSelectedLang.toLowerCase());
+        // --- Populate Features (Edit Mode - Sliders/Buttons) ---
+        editFeaturesSectionEdit.innerHTML = ''; // Clear previous edit features
+        const featuresHeader = modal.querySelector('.features-header'); // *** Find the new header div ***
+        const addFeatureButton = document.createElement('button');
+        addFeatureButton.type = 'button';
+        addFeatureButton.textContent = '+ Add Feature'; // Needs translation later
+        addFeatureButton.className = 'add-feature-btn btn-secondary btn-small'; // Add classes
+        addFeatureButton.addEventListener('click', (e) => handleAddFeature(e, 'editFeaturesSectionEdit', aiData.id));
+        // *** Append button to header, only if it doesn't exist ***
+        if (featuresHeader) {
+            if (!featuresHeader.querySelector('.add-feature-btn')) {
+                featuresHeader.appendChild(addFeatureButton);
+            } else {
+                 console.warn("[showEditAIModal] Add Feature button already exists in header. Not adding another.");
+             }
+        }
+        // Add container for rows INSIDE editFeaturesSectionEdit
+        const featureRowsContainerEdit = document.createElement('div');
+        featureRowsContainerEdit.className = 'feature-rows-container';
+        editFeaturesSectionEdit.appendChild(featureRowsContainerEdit);
+        // Populate existing features
+        allFeatures.forEach(featureDef => {
+            const featureId = featureDef.id;
+            if (Object.hasOwnProperty.call(aiData.features || {}, featureId)) {
+                const score = aiData.features[featureId] || 0;
+                const editRow = createFeatureRowElement(featureId, score, featureDef, true, lastSelectedLangCode, aiData.id);
+                if (editRow) {
+                    featureRowsContainerEdit.appendChild(editRow);
+                }
+            }
+        });
+        console.log('[showEditAIModal] Populated Edit Features Section.');
 
-        // Set initial preview based on initial language
-        const initialDescription = lastSelectedLang === 'EN' ? aiData.description_en : aiData.description_zh;
-        updatePreview(initialDescription || ''); 
-
-        // Show the modal
-        modalContent.dataset.mode = 'read-only'; // Start in read-only mode
-        modal.style.display = 'flex';
-        console.log('[showEditAIModal] Modal display set to flex.');
+        // --- Populate Read-Only Display ---
+        // Populate read-only features section
+        readOnlyFeaturesSection.innerHTML = ''; // Clear previous
+        allFeatures.forEach(featureDef => {
+            const featureId = featureDef.id;
+            // Use || {} to handle cases where aiData.features might be missing
+            if (Object.hasOwnProperty.call(aiData.features || {}, featureId)) { 
+                const score = aiData.features[featureId] || 0;
+                // *** Call NEW function for read-only bars ***
+                const readBarElement = createReadOnlyFeatureBarElement(featureId, score, featureDef, lastSelectedLangCode);
+                if (readBarElement) { // Function returns null for score 0
+                    readOnlyFeaturesSection.appendChild(readBarElement);
+                }
+            }
+        });
+        if (readOnlyFeaturesSection.children.length === 0) {
+            readOnlyFeaturesSection.innerHTML = '<p><i>No features rated.</i></p>';
+        }
+        // Now call the MODULE-LEVEL helper for the rest of the read-only fields
+        updateReadOnlyDisplay(aiData, lastSelectedLangCode); // Uses the function defined outside
+        console.log('[showEditAIModal] Populated Read Only Display Section.');
         
-        // --- Add translation update call here --- 
+        // --- Load Translations and Apply --- 
+        await loadLanguage(lastSelectedLangCode); // Load the language file
         const currentLangData = getCurrentTranslations();
         if (currentLangData) {
             updateStaticText(currentLangData, modal); // Update text within this modal
+            // Update the Add Feature button text using translations
+            // TODO: Add 'modal.editAI.addFeatureButton' key to JSON files
+            // addFeatureButton.textContent = getNestedTranslation(currentLangData, 'modal.editAI.addFeatureButton') || '+ Add Feature';
+            const addFeatureBtnElement = modal.querySelector('.features-header .add-feature-btn');
+            if (addFeatureBtnElement) {
+                addFeatureBtnElement.textContent = getNestedTranslation(currentLangData, 'modal.editAI.addFeatureButton') || '+ Add Feature';
+            }
         } else {
-            console.warn('[AIToolManagement] Could not get current translations to update Edit AI modal.');
+            console.warn('[showEditAIModal] Could not get current translations to update modal text.');
         }
-        // ------------------------------------------
+
+        // --- Set Initial Mode and Show Modal ---
+        modalContent.dataset.mode = 'read-only'; // Start in read-only mode
+        modal.querySelectorAll('.read-only-element').forEach(el => el.style.display = 'block'); // Or 'flex' etc.
+        modal.querySelectorAll('.edit-mode-element').forEach(el => el.style.display = 'none');
+        if (editForm) editForm.style.display = 'none'; // Ensure form is hidden initially (Use the variable)
+
+        modal.style.display = 'flex'; // Show the modal
+        console.log('[showEditAIModal] Modal display set to flex, initial mode set to read-only.');
 
     } catch (error) {
-        console.error('Error showing edit AI modal:', error);
+        console.error('[showEditAIModal] Error showing edit AI modal:', error);
     }
 }
 
@@ -194,35 +484,79 @@ export async function getAllAIItems() {
 }
 
 // Save AI item changes
-export async function saveAIItemChanges(aiId, newData, updateUICallback) {
-    try {
-        // Get all AI items
+export async function saveAIItemChanges(aiId, updateUICallback) {
+    console.log(`[saveAIItemChanges] Saving changes for ID: ${aiId}`);
+    const modal = document.getElementById('editAIModal');
+    const iconInput = document.getElementById('editItemIcon');
+    const descENInput = document.getElementById('editItemDescriptionEN');
+    const descZHInput = document.getElementById('editItemDescriptionZH');
+    const nameENInput = document.getElementById('editItemNameEN');
+    const nameZHInput = document.getElementById('editItemNameZH');
+    const toolWebsiteInput = document.getElementById('editItemToolWebsite');
+    const releaseMonthInput = document.getElementById('editItemReleaseMonth');
+    const releaseYearInput = document.getElementById('editItemReleaseYear');
+    const featuresEditContainer = document.getElementById('editFeaturesSectionEdit'); // Container for sliders
+
+    if (!modal || !iconInput || !descENInput || !descZHInput || !nameENInput || !nameZHInput 
+        || !toolWebsiteInput || !releaseMonthInput || !releaseYearInput || !featuresEditContainer) {
+        console.error('[saveAIItemChanges] Critical modal element not found during save.');
+        alert('Error saving: Modal elements missing.'); // User feedback
+        return null; // Return null if required elements are missing
+    }
+
+    try { // Start of the try block
+        // --- REVISED Feature Data Collection ---
+        const newFeatures = {};
+        const featureRows = featuresEditContainer.querySelectorAll('.feature-row'); // Get only rows added by user
+        featureRows.forEach(row => {
+            const featureId = row.dataset.featureId;
+            const slider = row.querySelector(`input[type="range"][name="${featureId}"]`);
+            if (featureId && slider) {
+                const score = parseInt(slider.value, 10);
+                 newFeatures[featureId] = score;
+            }
+        });
+        console.log('[saveAIItemChanges] Collected features:', newFeatures);
+    
+        const newData = {
+            id: aiId, // Keep the original ID
+            icon: iconInput.value.trim(),
+            name_en: nameENInput.value.trim(),
+            name_zh: nameZHInput.value.trim(),
+            description_en: descENInput.value.trim(),
+            description_zh: descZHInput.value.trim(),
+            toolWebsite: toolWebsiteInput.value.trim(),
+            releaseDate: `${releaseYearInput.value || ''}-${releaseMonthInput.value || ''}`.replace(/^-$/, ''), // Format YYYY-MM, handle empty
+            features: newFeatures // Use the newly collected features
+        };
+    
+        // Find the item in the cached list and update it
         const allItems = await getAllAIItems();
-        
-        // Find the item to update
         const itemIndex = allItems.findIndex(item => item.id === aiId);
         if (itemIndex === -1) {
+            // Throw error if item not found to be caught below
             throw new Error(`AI item with ID ${aiId} not found`);
         }
-        
+            
         // Update the item in the array
         const updatedItem = { ...allItems[itemIndex], ...newData };
         allItems[itemIndex] = updatedItem;
-        
+            
         // Save back to JSON/localStorage
         await saveAllAIItems(allItems);
-        
+            
         // Call the update UI callback if provided, passing the full updated item data
         if (updateUICallback && typeof updateUICallback === 'function') {
-            // Ensure the ID is passed along with the newData
-            updateUICallback(updatedItem); 
+            updateUICallback(updatedItem);
         }
+            
+        return updatedItem; // Return the updated object on success
         
-        return true;
-    } catch (error) {
-        console.error('Error saving AI item changes:', error);
-        return false;
-    }
+    } catch (error) { // Catch block starts here
+        console.error(`[saveAIItemChanges] Error updating item ${aiId}:`, error);
+        alert(`Error saving changes for ${aiId}. Check console.`);
+        return null; // Return null on failure
+    } // End of catch block
 }
 
 // Save all AI items back to JSON
@@ -258,303 +592,290 @@ let originalDataBeforeEdit = {}; // Store data when entering edit mode
 export function setupEditModalListeners(updateUICallback) {
     console.log("[setupEditModalListeners] Setting up listeners...");
     const modal = document.getElementById('editAIModal');
+    if (!modal) { console.error("[setupEditModalListeners] Edit AI Modal not found!"); return; }
+
     const modalContent = modal.querySelector('.modal-content');
     const closeButton = document.getElementById('closeEditModal');
     const editForm = document.getElementById('editAIForm');
     const cancelEditButton = document.getElementById('cancelEdit');
     const editModeBtn = document.getElementById('editModeBtn');
-    const langSwitchEN = document.getElementById('langSwitchEN');
-    const langSwitchZH = document.getElementById('langSwitchZH');
-    const descENContainer = document.getElementById('descENContainer');
-    const descZHContainer = document.getElementById('descZHContainer');
-    const descENTextarea = document.getElementById('editItemDescriptionEN');
-    const descZHTextarea = document.getElementById('editItemDescriptionZH');
-    const markdownPreview = document.getElementById('markdownPreview');
-    const nameENContainer = document.getElementById('nameENContainer');
-    const nameZHContainer = document.getElementById('nameZHContainer');
-    const nameENInput = document.getElementById('editItemNameEN');
-    const nameZHInput = document.getElementById('editItemNameZH');
-    const iconInput = document.getElementById('editItemIcon'); // Get icon input
-    const idInput = document.getElementById('editItemId');     // Get id input
-    const toolWebsiteInput = document.getElementById('editItemToolWebsite');
-    // Date inputs
-    const releaseMonthInput = document.getElementById('editItemReleaseMonth');
-    const releaseYearInput = document.getElementById('editItemReleaseYear');
+    const saveButton = modal.querySelector('.modal-actions button[type="submit"]');
+    
+    // Language Switches
+    const readOnlyLangSwitchEN = document.getElementById('readOnlyLangSwitchEN');
+    const readOnlyLangSwitchZH = document.getElementById('readOnlyLangSwitchZH');
+    const editLangSwitchEN = document.getElementById('editLangSwitchEN');
+    const editLangSwitchZH = document.getElementById('editLangSwitchZH');
+    
+    // Edit Mode Input Fields
+    const editItemId = document.getElementById('editItemId');
+    const editItemIcon = document.getElementById('editItemIcon');
+    const editItemNameEN = document.getElementById('editItemNameEN');
+    const editItemNameZH = document.getElementById('editItemNameZH');
+    const editItemReleaseMonth = document.getElementById('editItemReleaseMonth');
+    const editItemReleaseYear = document.getElementById('editItemReleaseYear');
+    const editItemToolWebsite = document.getElementById('editItemToolWebsite');
+    const editItemDescriptionEN = document.getElementById('editItemDescriptionEN');
+    const editItemDescriptionZH = document.getElementById('editItemDescriptionZH');
+    const editFeaturesSectionEdit = document.getElementById('editFeaturesSectionEdit');
+    const editMarkdownPreview = document.getElementById('editMarkdownPreview');
 
-    // Read-only spans
-    const displayNameEN = document.getElementById('displayNameEN');
-    const displayNameZH = document.getElementById('displayNameZH');
-    const displayIconURL = document.getElementById('displayIconURL');
-    // Add potential read-only spans for new fields (optional)
-    const displayToolWebsite = document.getElementById('displayToolWebsite');
-    const displayReleaseDate = document.getElementById('displayReleaseDate');
+    // Edit Mode Language-Specific Containers
+    const editNameENContainer = document.getElementById('editNameENContainer');
+    const editNameZHContainer = document.getElementById('editNameZHContainer');
+    const editDescENContainer = document.getElementById('editDescENContainer');
+    const editDescZHContainer = document.getElementById('editDescZHContainer');
 
-    // Helper to update read-only display spans
-    const updateReadOnlyDisplay = (data) => {
-        displayNameEN.textContent = data.name_en || 'N/A';
-        displayNameZH.textContent = data.name_zh || 'N/A';
-        displayIconURL.textContent = data.icon || 'N/A';
-        if (displayToolWebsite) displayToolWebsite.textContent = data.toolWebsite || 'N/A';
-        if (displayReleaseDate) displayReleaseDate.textContent = data.releaseDate || 'N/A'; // Display YYYY-MM
+    // Read Only Display Elements
+    const readOnlyNameLabel = document.getElementById('readOnlyNameLabel'); // The label itself
+    const readOnlyName = document.getElementById('readOnlyName'); // The span inside the value-container
+    const readOnlyReleaseDate = document.getElementById('readOnlyReleaseDate');
+    const readOnlyFeaturesSection = document.getElementById('readOnlyFeaturesSection');
+    const readOnlyMarkdownPreview = document.getElementById('readOnlyMarkdownPreview');
+    const readOnlyIconContainer = modal.querySelector('#readOnlyPairIcon .value-container');
+    const readOnlyWebsiteContainer = modal.querySelector('#readOnlyPairToolWebsite .value-container');
+
+    // Check if all required elements are found
+    const requiredElements = {
+        modal, modalContent, closeButton, editForm, cancelEditButton, editModeBtn, saveButton,
+        readOnlyLangSwitchEN, readOnlyLangSwitchZH, editLangSwitchEN, editLangSwitchZH,
+        editItemId, editItemIcon, editItemNameEN, editItemNameZH, editItemReleaseMonth, editItemReleaseYear,
+        editItemToolWebsite, editItemDescriptionEN, editItemDescriptionZH, editFeaturesSectionEdit, editMarkdownPreview,
+        editNameENContainer, editNameZHContainer, editDescENContainer, editDescZHContainer,
+        readOnlyNameLabel, readOnlyName, readOnlyReleaseDate, readOnlyFeaturesSection, readOnlyMarkdownPreview,
+        readOnlyIconContainer, readOnlyWebsiteContainer
     };
 
-    // --- Language Switching Logic ---
-    const switchLanguage = async (targetLang) => { // Made async to await loadLanguage
-        console.log(`[switchLanguage] Switching to ${targetLang}`);
-        const isEN = targetLang === 'EN';
-        const currentMode = modalContent.dataset.mode;
-
-        // Update data-language attribute for CSS rules to work
-        modalContent.dataset.language = isEN ? 'en' : 'zh';
-        
-        // Save the selected language to localStorage for persistence
-        localStorage.setItem('lastEditAIModalLanguage', targetLang);
-        
-        // Update button active states
-        langSwitchEN.classList.toggle('active', isEN);
-        langSwitchZH.classList.toggle('active', !isEN);
-
-        // Toggle visibility of language-specific containers
-        if (nameENContainer && nameZHContainer) {
-            // In edit mode, toggle display
-            if (currentMode === 'edit') {
-                nameENContainer.style.display = isEN ? 'block' : 'none';
-                nameZHContainer.style.display = isEN ? 'none' : 'block';
-            }
+    let allFound = true;
+    for (const key in requiredElements) {
+        if (!requiredElements[key]) {
+            console.error(`[setupEditModalListeners] Element not found: ${key}`);
+            allFound = false;
         }
-        
-        // Toggle description containers visibility
-        if (descENContainer && descZHContainer) {
-            descENContainer.style.display = isEN ? 'block' : 'none';
-            descZHContainer.style.display = isEN ? 'none' : 'block';
-        }
+    }
 
-        // Update preview based on the corresponding description textarea
-        // Use original data if read-only, current input if editing
-        let previewText = '';
+    if (!allFound) {
+        console.error("[setupEditModalListeners] Aborting setup due to missing elements.");
+        return;
+    }
+    console.log("[setupEditModalListeners] All required elements found.");
+
+    // --- Language Switching Logic (Combined for Read-Only and Edit) --- 
+    const switchLanguage = async (targetLangCode) => {
+        console.log(`[Edit Modal switchLanguage] Switching to ${targetLangCode}`);
+        const isEN = targetLangCode === 'en';
+        const currentMode = modalContent.dataset.mode || 'read-only'; // Default to read-only
+
+        // 1. Update data-language attribute
+        modalContent.dataset.language = targetLangCode;
+        
+        // 2. Update button active states (both sets)
+        readOnlyLangSwitchEN.classList.toggle('active', isEN);
+        readOnlyLangSwitchZH.classList.toggle('active', !isEN);
+        editLangSwitchEN.classList.toggle('active', isEN);
+        editLangSwitchZH.classList.toggle('active', !isEN);
+
+        // 3. Toggle visibility of language-specific containers in EDIT MODE
+        editNameENContainer.style.display = isEN ? 'block' : 'none';
+        editNameZHContainer.style.display = isEN ? 'none' : 'block';
+        editDescENContainer.style.display = isEN ? 'block' : 'none';
+        editDescZHContainer.style.display = isEN ? 'none' : 'block';
+        
+        // 4. Reload translations if needed
+        await loadLanguage(targetLangCode);
+        const currentLangData = getCurrentTranslations();
+
+        // 5. Update Read-Only Display or Edit Preview based on mode
         if (currentMode === 'read-only') {
              try {
                  const originalData = JSON.parse(modal.dataset.originalData || '{}');
-                 previewText = isEN ? originalData.description_en : originalData.description_zh;
-             } catch(e) { console.error("Error parsing original data for preview:", e); }
-        } else { // Edit mode
-             previewText = isEN ? descENTextarea.value : descZHTextarea.value;
-        }
-        updatePreview(previewText || ''); // Ensure preview update has a default
-        
-        // --- Re-apply translations to the whole modal ---
-        // CRITICAL FIX: Actually load the correct language file instead of using whatever is current
-        const langCode = isEN ? 'en' : 'zh';
-        await loadLanguage(langCode); // Load the specific language file
-        const currentLangData = getCurrentTranslations(); 
-        if (currentLangData) {
-            console.log(`[switchLanguage] Re-applying static text for language: ${langCode}`);
-            updateStaticText(currentLangData, modal); // Pass the specific modal element
+                // Call MODULE-LEVEL helper
+                updateReadOnlyDisplay(originalData, targetLangCode); // Pass lang code
+                // Re-populate read-only features (since helper doesn't handle them)
+                readOnlyFeaturesSection.innerHTML = ''; // Clear
+                const allFeatures = getAllFeatures();
+                 allFeatures.forEach(featureDef => {
+                    const featureId = featureDef.id;
+                    if (Object.hasOwnProperty.call(originalData.features || {}, featureId)) {
+                        const score = originalData.features[featureId] || 0;
+                        // *** Pass targetLangCode, NOT originalData's lang ***
+                        const readRow = createReadOnlyFeatureBarElement(featureId, score, featureDef, targetLangCode);
+                        if (readRow) { readOnlyFeaturesSection.appendChild(readRow); }
+                    }
+                 });
+                 if (readOnlyFeaturesSection.children.length === 0) { readOnlyFeaturesSection.innerHTML = '<p><i>No features rated.</i></p>'; }
+
+            } catch(e) { console.error("Error parsing original data for read-only display update:", e); }
         } else {
-            console.warn(`[switchLanguage] Could not get translations to update modal for language: ${langCode}`);
+            // Call MODULE-LEVEL helper
+            const previewText = isEN ? editItemDescriptionEN.value : editItemDescriptionZH.value;
+            updateEditPreview(previewText || '');
         }
-        // --------------------------------------------------
-        
-        // Debug log for state
-        console.log(`[switchLanguage] Mode: ${currentMode}, Lang: ${modalContent.dataset.language}, Preview updated.`);
+
+        // 6. Update all translatable text within the modal
+        if (currentLangData) {
+            console.log(`[Edit Modal switchLanguage] Re-applying static text for language: ${targetLangCode}`);
+            updateStaticText(currentLangData, modal); // Apply to the whole modal
+            // *** ALSO UPDATE DYNAMICALLY ADDED BUTTON TEXT ***
+            const addFeatureBtnElement = modal.querySelector('.features-header .add-feature-btn');
+            if (addFeatureBtnElement) {
+                 addFeatureBtnElement.textContent = getNestedTranslation(currentLangData, 'modal.editAI.addFeatureButton') || '+ Add Feature';
+            }
+        } else {
+            console.warn(`[Edit Modal switchLanguage] Could not get translations for ${targetLangCode}`);
+        }
     };
 
-    langSwitchEN.addEventListener('click', () => switchLanguage('EN'));
-    langSwitchZH.addEventListener('click', () => switchLanguage('ZH'));
+    // Attach listeners to BOTH sets of language buttons
+    readOnlyLangSwitchEN.addEventListener('click', () => switchLanguage('en'));
+    readOnlyLangSwitchZH.addEventListener('click', () => switchLanguage('zh'));
+    editLangSwitchEN.addEventListener('click', () => switchLanguage('en'));
+    editLangSwitchZH.addEventListener('click', () => switchLanguage('zh'));
 
     // --- Real-time Markdown Preview Update (Only in Edit Mode) ---
-    descENTextarea.addEventListener('input', () => {
-        if (modalContent.dataset.mode === 'edit' && langSwitchEN.classList.contains('active')) {
-            updatePreview(descENTextarea.value);
+    editItemDescriptionEN.addEventListener('input', () => {
+        if (modalContent.dataset.mode === 'edit' && modalContent.dataset.language === 'en') {
+            updateEditPreview(editItemDescriptionEN.value); // Use module-level helper
         }
     });
-    descZHTextarea.addEventListener('input', () => {
-        if (modalContent.dataset.mode === 'edit' && langSwitchZH.classList.contains('active')) {
-            updatePreview(descZHTextarea.value);
-        }
-    });
-
-    // --- Description Textarea Event Listeners for Real-time Preview ---
-    // English description textarea
-    descENTextarea.addEventListener('input', () => {
-        // Only update preview if English is the active language
-        if (modalContent.dataset.language === 'en') {
-            updatePreview(descENTextarea.value || '');
-        }
-    });
-    
-    // Chinese description textarea
-    descZHTextarea.addEventListener('input', () => {
-        // Only update preview if Chinese is the active language
-        if (modalContent.dataset.language === 'zh') {
-            updatePreview(descZHTextarea.value || '');
+    editItemDescriptionZH.addEventListener('input', () => {
+        if (modalContent.dataset.mode === 'edit' && modalContent.dataset.language === 'zh') {
+            updateEditPreview(editItemDescriptionZH.value); // Use module-level helper
         }
     });
 
-    // --- Edit Button Logic ---
+    // --- Mode Switching Logic ---
     editModeBtn.addEventListener('click', () => {
-        console.log('[Edit Button Click] Switching to edit mode.');
-        modalContent.dataset.mode = 'edit';
+        console.log("[Edit Modal] Switching to Edit Mode");
+        modalContent.dataset.mode = 'edit'; // Set mode
+        modal.querySelectorAll('.read-only-element').forEach(el => el.style.display = 'none');
+        modal.querySelectorAll('.edit-mode-element').forEach(el => el.style.display = 'block'); 
+        editForm.style.display = 'block';
+        
+        const currentLang = modalContent.dataset.language || 'zh';
+        editLangSwitchEN.classList.toggle('active', currentLang === 'en');
+        editLangSwitchZH.classList.toggle('active', currentLang === 'zh');
 
-        // Store current values from inputs/spans before user potentially changes them
-        // Combine date fields for storage
-        const month = releaseMonthInput.value;
-        const year = releaseYearInput.value;
-        let currentReleaseDate = '';
-        if (year && month) {
-            currentReleaseDate = `${year}-${month}`;
-        }
+        editNameENContainer.style.display = currentLang === 'en' ? 'block' : 'none';
+        editNameZHContainer.style.display = currentLang === 'en' ? 'none' : 'block';
+        editDescENContainer.style.display = currentLang === 'en' ? 'block' : 'none';
+        editDescZHContainer.style.display = currentLang === 'en' ? 'none' : 'block';
 
-        originalDataBeforeEdit = {
-            id: idInput.value,
-            name_en: nameENInput.value,
-            name_zh: nameZHInput.value,
-            icon: iconInput.value,
-            toolWebsite: toolWebsiteInput.value,
-            releaseDate: currentReleaseDate, // Store combined date
-            description_en: descENTextarea.value,
-            description_zh: descZHTextarea.value
-        };
-        console.log('[Edit Button Click] Stored data before edit:', originalDataBeforeEdit);
-
-        // Re-apply language switch visibility based on current active button
-        switchLanguage(langSwitchEN.classList.contains('active') ? 'EN' : 'ZH'); 
-
-        // Focus the first visible input
-        if (langSwitchEN.classList.contains('active')) {
-            nameENInput.focus();
-        } else {
-            nameZHInput.focus();
-        }
+        // Trigger preview update using MODULE-LEVEL helper
+        const previewText = currentLang === 'en' ? editItemDescriptionEN.value : editItemDescriptionZH.value;
+        updateEditPreview(previewText || '');
     });
 
-    // --- Cancel Edit Button Logic ---
     cancelEditButton.addEventListener('click', () => {
-        console.log('[Cancel Button Click] Reverting changes and switching to read-only mode.');
-        // Restore fields from data stored when entering edit mode
-        nameENInput.value = originalDataBeforeEdit.name_en || '';
-        nameZHInput.value = originalDataBeforeEdit.name_zh || '';
-        iconInput.value = originalDataBeforeEdit.icon || '';
-        toolWebsiteInput.value = originalDataBeforeEdit.toolWebsite || '';
-        // Restore Date (Split YYYY-MM)
-        const [year, month] = (originalDataBeforeEdit.releaseDate || '-').split('-');
-        releaseYearInput.value = year || '';
-        releaseMonthInput.value = month || '';
-        //---
-        descENTextarea.value = originalDataBeforeEdit.description_en || '';
-        descZHTextarea.value = originalDataBeforeEdit.description_zh || '';
-
+        console.log("[Edit Modal] Cancelling Edit - Reverting to Read Only");
         modalContent.dataset.mode = 'read-only';
-        // Update preview based on reverted (original) data
-        switchLanguage(langSwitchEN.classList.contains('active') ? 'EN' : 'ZH'); 
+        modal.querySelectorAll('.read-only-element').forEach(el => el.style.display = 'block');
+        modal.querySelectorAll('.edit-mode-element').forEach(el => el.style.display = 'none');
+        editForm.style.display = 'none';
+        
+        // Restore original data using MODULE-LEVEL helper
+        populateEditForm(originalDataBeforeEdit); 
+        
+        const currentLang = modalContent.dataset.language || 'zh';
+        readOnlyLangSwitchEN.classList.toggle('active', currentLang === 'en');
+        readOnlyLangSwitchZH.classList.toggle('active', currentLang === 'zh');
+
+        // Re-render read-only display using MODULE-LEVEL helper
+        updateReadOnlyDisplay(originalDataBeforeEdit, currentLang); // Pass lang code
+        // Re-populate read-only features
+        readOnlyFeaturesSection.innerHTML = ''; 
+        const allFeatures = getAllFeatures();
+         allFeatures.forEach(featureDef => {
+            const featureId = featureDef.id;
+            if (Object.hasOwnProperty.call(originalDataBeforeEdit.features || {}, featureId)) {
+                const score = originalDataBeforeEdit.features[featureId] || 0;
+                // *** Pass currentLang to createReadOnlyFeatureBarElement ***
+                const readRow = createReadOnlyFeatureBarElement(featureId, score, featureDef, currentLang);
+                if (readRow) { readOnlyFeaturesSection.appendChild(readRow); }
+            }
+         });
+         if (readOnlyFeaturesSection.children.length === 0) { readOnlyFeaturesSection.innerHTML = '<p><i>No features rated.</i></p>'; }
     });
     
     // --- Form Submission Logic ---
     editForm.addEventListener('submit', async (event) => {
-        event.preventDefault(); // Prevent default form submission which reloads page
-        console.log("[Form Submit] Attempting to save changes...");
-
-        const aiId = idInput.value;
-
-        // Combine date fields for saving
-        const month = releaseMonthInput.value;
-        const year = releaseYearInput.value;
-        let releaseDate = '';
-        if (year && month) {
-            releaseDate = `${year}-${month}`;
-        } else if (year || month) {
-            // If only one is provided, maybe alert the user or clear both?
-            // For now, only save if both are present.
-            console.warn('Release month or year missing, saving releaseDate as empty.');
-        }
-
-        const updatedData = {
-            name_en: nameENInput.value.trim(),
-            name_zh: nameZHInput.value.trim(),
-            icon: iconInput.value.trim(),
-            toolWebsite: toolWebsiteInput.value.trim(),
-            releaseDate: releaseDate, // Use combined date
-            description_en: descENTextarea.value.trim(),
-            description_zh: descZHTextarea.value.trim()
-        };
-
-        if (updatedData.name_en === '' || updatedData.name_zh === '') {
-            alert('English and Chinese names cannot be empty!');
+        event.preventDefault();
+        console.log("[Edit Modal] Form submitted.");
+        
+        const itemId = editItemId.value;
+        if (!itemId) {
+            console.error("[Edit Modal] Cannot save, item ID is missing.");
             return;
         }
         
-        console.log("[Form Submit] Saving data:", updatedData);
+        // Collect data from form fields
+        const formData = {
+            id: itemId,
+            name_en: editItemNameEN.value.trim(),
+            name_zh: editItemNameZH.value.trim(),
+            icon: editItemIcon.value.trim(),
+            releaseDate: buildReleaseDate(editItemReleaseMonth.value, editItemReleaseYear.value),
+            toolWebsite: editItemToolWebsite.value.trim(),
+            description_en: editItemDescriptionEN.value.trim(),
+            description_zh: editItemDescriptionZH.value.trim(),
+            features: collectFeaturesFromDOM(editFeaturesSectionEdit)
+        };
 
-        // Call the save function (assuming it handles backend/JSON update)
-        const success = await saveAIItemChanges(aiId, updatedData, updateUICallback);
+        console.log("[Edit Modal] Collected form data:", formData);
 
-        if (success) {
-            console.log("[Form Submit] Save successful. Updating UI and switching to read-only mode.");
-            // Update the display spans with the new data
-            updateReadOnlyDisplay(updatedData);
-            
-            // Update the stored original data to reflect the save
-            // Need to fetch the full item again or construct it to include ID etc.
-            // For simplicity, let's construct it:
-            const savedItemData = {
-                id: aiId,
-                ...updatedData
-            };
-            modal.dataset.originalData = JSON.stringify(savedItemData);
+        // Update the item in the main data store using the correct async function
+        const updatedItem = await saveAIItemChanges(itemId, updateUICallback);
+
+        if (updatedItem) { // Check if we got the updated item back (not null)
+            console.log(`[Edit Modal] AI item ${itemId} updated successfully.`);
+            originalDataBeforeEdit = { ...updatedItem }; // Use the DEFINITIVE updated data
+            modal.dataset.originalData = JSON.stringify(originalDataBeforeEdit);
 
             // Switch back to read-only mode
             modalContent.dataset.mode = 'read-only';
+            modal.querySelectorAll('.read-only-element').forEach(el => el.style.display = 'block');
+            modal.querySelectorAll('.edit-mode-element').forEach(el => el.style.display = 'none');
+            editForm.style.display = 'none';
             
-            // Re-sync preview after save
-            switchLanguage(langSwitchEN.classList.contains('active') ? 'EN' : 'ZH'); 
+            // Re-render read-only display using MODULE-LEVEL helper and DEFINITIVE data
+            const currentLang = modalContent.dataset.language || 'zh';
+            updateReadOnlyDisplay(updatedItem, currentLang);
+            // Re-populate read-only features using DEFINITIVE data
+            readOnlyFeaturesSection.innerHTML = '';
+            const allFeatures = getAllFeatures();
+            allFeatures.forEach(featureDef => {
+                const featureId = featureDef.id;
+                if (Object.hasOwnProperty.call(updatedItem.features || {}, featureId)) { // Use updatedItem.features
+                    const score = updatedItem.features[featureId] || 0;
+                    const readRow = createReadOnlyFeatureBarElement(featureId, score, featureDef, currentLang);
+                    if (readRow) { readOnlyFeaturesSection.appendChild(readRow); }
+                }
+            });
+            if (readOnlyFeaturesSection.children.length === 0) { readOnlyFeaturesSection.innerHTML = '<p><i>No features rated.</i></p>'; }
+            
         } else {
-            console.error("[Form Submit] Save failed.");
-            alert('Failed to save changes. Please check the console for errors.');
+            console.error(`[Edit Modal] Failed to update AI item ${itemId}. Save function returned null.`);
+            alert('Error saving changes. Please check console.');
         }
     });
 
-    // --- Close Modal Button --- 
-    closeButton.addEventListener('click', () => {
-        modal.style.display = 'none'; // Hide the modal
-        console.log("[Close Button Click] Modal closed.");
+    // --- Feature Row Remove Button Listener (Event Delegation) ---
+    editFeaturesSectionEdit.addEventListener('click', (event) => {
+        if (event.target.classList.contains('remove-feature-btn')) {
+            const button = event.target;
+            const featureRow = button.closest('.feature-row');
+            if (featureRow) {
+                featureRow.remove();
+                console.log(`[Edit Modal] Removed feature row for ID: ${button.dataset.featureId}`);
+            }
+        }
     });
 
-    // Add checks for the new pair containers and inputs
-    const readOnlyPairZH = document.getElementById('readOnlyPairZH');
-    const readOnlyPairEN = document.getElementById('readOnlyPairEN');
-    const readOnlyPairIcon = document.getElementById('readOnlyPairIcon');
-    // Add new read-only pairs (optional)
-    const readOnlyPairToolWebsite = document.getElementById('readOnlyPairToolWebsite');
-    const readOnlyPairReleaseDate = document.getElementById('readOnlyPairReleaseDate');
+    // --- Close Button --- 
+    closeButton.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
 
-    // Check if all required elements exist
-    if (!modal || !modalContent || !closeButton || !editForm || !cancelEditButton || !editModeBtn || // Core modal elements
-        !langSwitchEN || !langSwitchZH || !descENContainer || !descZHContainer ||
-        !descENTextarea || !descZHTextarea || !markdownPreview || !nameENContainer || !nameZHContainer ||
-        !nameENInput || !nameZHInput || !iconInput || !idInput ||
-        !toolWebsiteInput || !releaseMonthInput || !releaseYearInput || // New inputs
-        !displayNameEN || !displayNameZH || !displayIconURL || // Read mode value spans
-        !readOnlyPairZH || !readOnlyPairEN || !readOnlyPairIcon || // Read mode pairs
-        !displayReleaseDate || !readOnlyPairReleaseDate // New read-only pair + span
-        // Optional new read-only pairs
-        // || !readOnlyPairToolWebsite || !readOnlyPairReleaseDate
-    ) {
-        console.error('[setupEditModalListeners] Could not find one or more required modal elements. Aborting listener setup.');
-        // Log missing elements for easier debugging
-        console.log({ modal, modalContent, closeButton, editForm, cancelEditButton, editModeBtn,
-                      langSwitchEN, langSwitchZH, descENContainer, descZHContainer,
-                      descENTextarea, descZHTextarea, markdownPreview, nameENContainer, nameZHContainer,
-                      nameENInput, nameZHInput, iconInput, idInput,
-                      toolWebsiteInput, releaseMonthInput, releaseYearInput, // New inputs
-                      displayNameEN, displayNameZH, displayIconURL,
-                      readOnlyPairZH, readOnlyPairEN, readOnlyPairIcon,
-                      displayReleaseDate, readOnlyPairReleaseDate, // New
-                      // Optional new read-only pairs
-                      readOnlyPairToolWebsite, readOnlyPairReleaseDate
-                     });
-        return;
-    }
-    console.log('[setupEditModalListeners] All required elements found.');
 }
 
 // --- Language Update ---+
@@ -672,9 +993,233 @@ export async function addAIItem(newAI) {
         localStorage.setItem('ai-tools-json', JSON.stringify(allItems, null, 2));
         
         console.log(`[addAIItem] Successfully added AI item with ID: ${newAI.id}`);
-        return true;
+        return newAI; // <-- Return the complete object with the ID
     } catch (error) {
         console.error('[addAIItem] Error adding AI item:', error);
-        return false;
+        return false; // Keep returning false on error
     }
 }
+
+// --- NEW: Helper to find insertion point based on global order ---
+function findFeatureInsertIndex(container, newFeatureId, allFeatures) {
+    const existingRows = Array.from(container.querySelectorAll('.feature-row'));
+    const newFeatureOrder = allFeatures.findIndex(f => f.id === newFeatureId);
+
+    let insertBeforeElement = null;
+    for (const row of existingRows) {
+        const existingFeatureId = row.dataset.featureId;
+        const existingFeatureOrder = allFeatures.findIndex(f => f.id === existingFeatureId);
+        if (existingFeatureOrder > newFeatureOrder) {
+            insertBeforeElement = row;
+            break;
+        }
+    }
+    return insertBeforeElement; // If null, append at the end
+}
+
+// --- NEW: Helper to create a feature row (Edit or Read-ONLY) ---
+function createFeatureRowElement(featureId, initialScore, featureDef, isEditMode, currentLang, toolId = null) {
+    const featureName = currentLang === 'en' ? featureDef.name_en : featureDef.name_zh;
+    const row = document.createElement('div');
+    row.className = `feature-row ${isEditMode ? '' : 'read-only'}`.trim();
+    row.dataset.featureId = featureId; // Store feature ID for saving and ordering
+
+    if (isEditMode) {
+        const sliderId = `feature-slider-${featureId}-${toolId || 'add'}`;
+        const displayId = `feature-score-${featureId}-${toolId || 'add'}`;
+        row.innerHTML = `
+            <div class="feature-controls">
+                <button type="button" class="remove-feature-btn" aria-label="Remove ${featureName}" data-feature-id="${featureId}">-</button>
+                <label for="${sliderId}">${featureName}</label>
+            </div>
+            <div class="feature-slider-container">
+                <input type="range" id="${sliderId}" name="${featureId}" min="0" max="100" value="${initialScore}" class="feature-slider">
+                <span id="${displayId}" class="feature-score-display">${initialScore}</span>
+            </div>
+        `;
+
+        // Add listener to update score display when slider changes
+        const slider = row.querySelector(`#${sliderId}`);
+        const display = row.querySelector(`#${displayId}`);
+        if (slider && display) {
+            slider.addEventListener('input', () => {
+                display.textContent = slider.value;
+            });
+        }
+
+    } else { // Read-Only Mode
+         // Only display if score > 0
+         if (initialScore > 0) {
+            // Compact Structure: Name above bar, no percentage
+            row.innerHTML = `
+                <div class="w-full">
+                  <p class="feature-name text-xs font-medium mb-1">${featureName}</p>
+                  <div class="progress h-2" role="progressbar" aria-label="${featureName} Progressbar" aria-valuenow="${initialScore}" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar" style="width: ${initialScore}%;"></div>
+                  </div>
+                </div>
+            `;
+         } else {
+             // If score is 0, don't add the row element at all for read-only
+             return null;
+         }
+    }
+    return row;
+}
+
+// --- NEW/REVISED: Add Feature Button Handler using Modal ---
+function handleAddFeature(e, targetContainerId, toolId = null) {
+    const targetContainer = document.getElementById(targetContainerId);
+    if (!targetContainer) {
+        console.error(`[handleAddFeature] Target container #${targetContainerId} not found.`);
+        return;
+    }
+
+    const featureSelectModal = document.getElementById('featureSelectionModal');
+    const availableFeaturesList = document.getElementById('availableFeaturesList');
+    const confirmBtn = document.getElementById('confirmFeatureSelection');
+    const cancelBtn = document.getElementById('cancelFeatureSelection');
+    const closeBtn = document.getElementById('closeFeatureSelectModal');
+
+    if (!featureSelectModal || !availableFeaturesList || !confirmBtn || !cancelBtn || !closeBtn) {
+        console.error('[handleAddFeature] Feature selection modal elements not found. Check HTML IDs.');
+        return;
+    }
+
+    // Find available features
+    const allFeatures = getAllFeatures();
+    // --- Determine language context more reliably ---
+    let currentLang = 'zh'; // Default
+    const parentModal = targetContainer.closest('.modal');
+    if (parentModal) {
+        const parentModalContent = parentModal.querySelector('.modal-content');
+        if (parentModalContent && parentModalContent.dataset.language) {
+            currentLang = parentModalContent.dataset.language;
+        } else {
+             console.warn('[handleAddFeature] Could not determine language from parent modal content.');
+        }
+    } else {
+        console.warn('[handleAddFeature] Could not find parent modal for target container.');
+        // Fallback to checking edit modal explicitly as before, just in case
+        const editModalContent = document.getElementById('editAIModal')?.querySelector('.modal-content');
+        if (editModalContent && editModalContent.dataset.language) {
+            currentLang = editModalContent.dataset.language;
+        }
+    }
+    console.log('[handleAddFeature] Determined language:', currentLang);
+    // --- End language context determination ---
+
+    const existingFeatureRows = targetContainer.querySelectorAll('.feature-row');
+    const existingFeatureIds = new Set(
+        Array.from(existingFeatureRows).map(row => row.dataset.featureId)
+    );
+
+    const availableFeatures = allFeatures.filter(f => !existingFeatureIds.has(f.id));
+
+    if (availableFeatures.length === 0) {
+        alert('All available features have been added.'); // Consider a less intrusive notification
+        return;
+    }
+
+    // Populate the selection modal list
+    availableFeaturesList.innerHTML = ''; // Clear previous list
+    availableFeatures.forEach(feature => {
+        const featureName = currentLang === 'en' ? feature.name_en : feature.name_zh;
+        const checkboxId = `select-feature-${feature.id}`;
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'feature-select-item';
+        itemDiv.innerHTML = `
+            <input type="checkbox" id="${checkboxId}" data-feature-id="${feature.id}">
+            <label for="${checkboxId}">${featureName}</label>
+        `;
+        availableFeaturesList.appendChild(itemDiv);
+    });
+
+    // Store context for the confirm button handler
+    confirmBtn.dataset.targetContainerId = targetContainerId;
+    confirmBtn.dataset.toolId = toolId || '';
+    confirmBtn.dataset.currentLang = currentLang;
+
+    // Remove previous listeners to prevent duplicates if modal is reused
+    confirmBtn.replaceWith(confirmBtn.cloneNode(true)); 
+    cancelBtn.replaceWith(cancelBtn.cloneNode(true));
+    closeBtn.replaceWith(closeBtn.cloneNode(true));
+
+    // Get fresh references after cloning
+    const newConfirmBtn = document.getElementById('confirmFeatureSelection');
+    const newCancelBtn = document.getElementById('cancelFeatureSelection');
+    const newCloseBtn = document.getElementById('closeFeatureSelectModal');
+
+    // Attach event listeners for the selection modal
+    newConfirmBtn.addEventListener('click', handleConfirmFeatureSelection);
+    newCancelBtn.addEventListener('click', () => featureSelectModal.style.display = 'none');
+    newCloseBtn.addEventListener('click', () => featureSelectModal.style.display = 'none');
+
+    // Show the modal
+    featureSelectModal.style.display = 'flex';
+}
+
+// --- NEW: Handler for Confirming Feature Selection --- 
+function handleConfirmFeatureSelection(e) {
+    const confirmBtn = e.target;
+    const targetContainerId = confirmBtn.dataset.targetContainerId;
+    const toolId = confirmBtn.dataset.toolId;
+    const currentLang = confirmBtn.dataset.currentLang;
+
+    const targetContainer = document.getElementById(targetContainerId);
+    const featureSelectModal = document.getElementById('featureSelectionModal');
+    const availableFeaturesList = document.getElementById('availableFeaturesList');
+
+    if (!targetContainer || !featureSelectModal || !availableFeaturesList) {
+        console.error('[handleConfirmFeatureSelection] Required elements not found.');
+        return;
+    }
+
+    const selectedCheckboxes = availableFeaturesList.querySelectorAll('input[type="checkbox"]:checked');
+    const allFeatures = getAllFeatures(); // Need the full list for ordering
+    const allFeaturesMap = new Map(allFeatures.map(f => [f.id, f])); // For easy lookup
+
+    selectedCheckboxes.forEach(checkbox => {
+        const featureId = checkbox.dataset.featureId;
+        const featureDef = allFeaturesMap.get(featureId);
+        if (featureDef) {
+            // Check if row already exists (shouldn't happen with current logic, but safe check)
+            if (!targetContainer.querySelector(`.feature-row[data-feature-id="${featureId}"]`)) {
+                const newRow = createFeatureRowElement(featureId, 0, featureDef, true, currentLang, toolId);
+                if (newRow) {
+                    // Insert into the correct position based on global order
+                    const featureRowsContainer = targetContainer.querySelector('.feature-rows-container') || targetContainer;
+                    const insertBeforeElement = findFeatureInsertIndex(featureRowsContainer, featureId, allFeatures);
+                    featureRowsContainer.insertBefore(newRow, insertBeforeElement);
+                    console.log(`Added feature row for: ${featureId}`);
+                }
+            }
+        } else {
+            console.warn(`[handleConfirmFeatureSelection] Feature definition not found for selected ID: ${featureId}`);
+        }
+    });
+
+    // Hide the selection modal
+    featureSelectModal.style.display = 'none';
+}
+
+// --- NEW: Helper to create a Read-Only Feature Bar ---
+function createReadOnlyFeatureBarElement(featureId, score, featureDef, currentLang) {
+    if (score === 0) return null; // Don't display features with 0 score
+
+    const featureName = currentLang === 'en' ? featureDef.name_en : featureDef.name_zh;
+    const container = document.createElement('div');
+    container.className = 'read-only-feature-item';
+    container.dataset.featureId = featureId;
+
+    // Create the structure: label followed by the bar container
+    container.innerHTML = `
+        <span class="read-only-feature-label">${featureName}</span>
+        <div class="read-only-feature-bar-container">
+            <div class="read-only-feature-bar" style="width: ${Math.max(0, Math.min(100, score))}%;"></div>
+        </div>
+    `;
+
+    return container;
+}
+

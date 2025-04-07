@@ -5,7 +5,7 @@
   "header": {
     "title": "925's AI Tier List",
     "subtitle": "Create and share your AI tool rankings",
-    "languageLabel": "Language:",
+    "languageLabel": "Language",
     "langSwitchZH": "中",
     "langSwitchEN": "EN"
   },
@@ -25,7 +25,8 @@
     "shareButton": "Share Chart",
     "exportImageButton": "Export as Image",
     "resetButton": "Reset Chart",
-    "exportCsvButton": "Export Placements (CSV)"
+    "exportCsvButton": "Export Placements (CSV)",
+    "exportCsvButtonLabel": "Export Placements (CSV)"
   },
   "footer": {
     "text": "&copy; 2025 Created by 925. All rights reserved."
@@ -34,14 +35,14 @@
   "modal": {
     "addTier": {
       "title": "Add New Tier",
-      "languageSwitchLabel": "Display Language:",
+      "languageSwitchLabel": "Display Language",
       "langSwitchEN": "EN",
       "langSwitchZH": "中",
-      "tierIdLabel": "Tier ID:",
+      "tierIdLabel": "Tier ID",
       "tierIdHint": "Short identifier (e.g., S, A, B, F)",
-      "nameEnLabel": "Name (EN):",
-      "nameZhLabel": "Name (ZH):",
-      "colorLabel": "Color:",
+      "nameEnLabel": "Name (EN)",
+      "nameZhLabel": "Name (ZH)",
+      "colorLabel": "Color",
       "saveButton": "Save Tier",
       "cancelButton": "Cancel"
     },
@@ -54,46 +55,51 @@
       "modalDescriptionEnLabel": "Description (EN)",
       "modalSaveChanges": "Save Changes",
       "modalCancel": "Cancel",
-      "displayLanguageLabel": "Display Language:"
+      "displayLanguageLabel": "Display Language"
     },
     "editAI": {
-      "title": "Edit AI Tool",
-      "languageSwitchLabel": "Display Language:",
+      "title": "AI Tool",
+      "addFeatureButton": "+ Add Feature",
+      "languageSwitchLabel": "Display Language",
       "langSwitchEN": "EN",
       "langSwitchZH": "中",
-      "nameZhLabel": "Name (ZH):",
-      "nameEnLabel": "Name (EN):",
-      "tierLabel": "Tier:",
-      "descriptionZhLabel": "Description (ZH):",
-      "descriptionEnLabel": "Description (EN):",
-      "imageUrlLabel": "Image URL:",
-      "websiteUrlLabel": "Tool Website:",
-      "releaseDateLabel": "Release Date:",
+      "nameZhLabel": "Name (ZH)",
+      "nameEnLabel": "Name (EN)",
+      "tierLabel": "Tier",
+      "descriptionZhLabel": "Description (ZH)",
+      "descriptionEnLabel": "Description (EN)",
+      "imageUrlLabel": "Image URL",
+      "websiteUrlLabel": "Tool Website",
+      "releaseDateLabel": "Release Date",
       "saveButton": "Save Changes",
       "cancelButton": "Cancel",
       "editButton": "Edit",
-      "readOnlyNameZhLabel": "AI Name (ZH):", 
-      "readOnlyNameEnLabel": "AI Name (EN):",
-      "readOnlyIconLabel": "Icon URL:",
+      "readOnlyNameZhLabel": "AI Name (ZH)", 
+      "readOnlyNameEnLabel": "AI Name (EN)",
+      "readOnlyIconLabel": "Icon URL",
       "markdownPreviewLabel": "Description Preview"
     },
     "addAI": { 
       "title": "Add Custom AI",
-      "languageSwitchLabel": "Display Language:",
+      "languageSwitchLabel": "Display Language",
       "langSwitchEN": "EN",
       "langSwitchZH": "中",
-      "nameLabel": "Name:", 
-      "nameEnLabel": "Name (EN):", 
-      "nameZhLabel": "Name (ZH):", 
-      "iconLabel": "Icon URL (Optional):",
-      "websiteUrlLabel": "Tool Website (Optional):",
-      "releaseDateLabel": "Release Date (Optional):",
-      "descriptionEnLabel": "Description (EN):",
-      "descriptionZhLabel": "Description (ZH):",
+      "nameLabel": "Name", 
+      "nameEnLabel": "Name (EN)", 
+      "nameZhLabel": "Name (ZH)", 
+      "iconLabel": "Icon URL (Optional)",
+      "websiteUrlLabel": "Tool Website (Optional)",
+      "releaseDateLabel": "Release Date (Optional)",
+      "descriptionEnLabel": "Description (EN)",
+      "descriptionZhLabel": "Description (ZH)",
       "markdownPreviewLabel": "Description Preview",
       "confirmButton": "Confirm Add",
       "cancelButton": "Cancel"
-    }
+    },
+    "features": {
+      "title": "Feature Ratings"
+    },
+    "websiteUnavailable": "Link not Available"
   },
   
   "exportCsvButtonLabel": "Export CSV",

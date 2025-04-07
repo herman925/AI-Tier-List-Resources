@@ -127,57 +127,59 @@ export function initDragAndDrop(state) {
         if (e.stopPropagation) {
             e.stopPropagation(); // Ensure event doesn't bubble up
         }
-        
-        // --- Check if an item is actually being dragged ---
-        if (!draggedItem) {
-            console.warn("[DragDrop] handleDrop called but draggedItem is null. Aborting drop.");
+        e.preventDefault(); // Important: Prevent default browser drop behavior
+
+        // --- Get item ID from dataTransfer --- 
+        const itemId = e.dataTransfer.getData('text/plain');
+        const droppedItemElement = document.querySelector(`.ai-item[data-id="${itemId}"]`);
+
+        // --- Check if we found the item being dropped ---
+        if (!droppedItemElement) {
+            console.warn("[DragDrop] handleDrop: Could not find element for dragged item ID:", itemId);
             this.classList.remove('over'); // Still remove hover effect
             return false;
         }
         
-        // Remove visual feedback
+        // Get the original parent BEFORE appending, as parentNode changes
+        const originalDropParent = droppedItemElement.parentNode;
+        
+        // Remove visual feedback from the drop zone
         this.classList.remove('over');
         
         // Don't do anything if dropping on the original container
-        // Check originalParent *before* removing, as parentNode changes after appendChild
-        if (originalParent === this) { 
+        if (originalDropParent === this) { 
+            console.log("[DragDrop] handleDrop: Item dropped on original parent. No action.");
             return false;
         }
         
         // Move the dragged item to the new container
-        console.log(`[DragDrop Debug] Attempting to drop item ID: ${draggedItem.getAttribute('data-id')} into dropzone:`, this);
- 
+        console.log(`[DragDrop Debug] Attempting to drop item ID: ${itemId} into dropzone:`, this);
+
         // Add to new parent (this = dropzone)
-        this.appendChild(draggedItem);
-        console.log(`[DragDrop Debug] Appended child. Current parentNode of item:`, draggedItem.parentNode);
- 
+        this.appendChild(droppedItemElement);
+        console.log(`[DragDrop Debug] Appended child. Current parentNode of item:`, droppedItemElement.parentNode);
+
         // Update the state AFTER the item is successfully moved
         console.log(`[DragDrop Debug] Calling updateStateAfterDrop...`);
         let newTierId = null; // Default to null for pool
         let sourceTierId = null;
 
-        // Check if dropped in a tier's dropzone or the unranked pool
-        if (this.classList.contains('tier-items')) { // Use .tier-items
-            // Find the parent .tier-row to get the tier ID
+        // Determine new tier ID based on drop target
+        if (this.classList.contains('tier-items')) {
             const tierRow = this.closest('.tier-row');
-            newTierId = tierRow ? tierRow.getAttribute('data-tier-id') : null;
-        } else if (this.id === 'ai-items') { // Dropped directly in the main #ai-items pool
-            newTierId = null; // Represent unranked/pool with null
+            newTierId = tierRow ? tierRow.getAttribute('data-tier') : null; // Use data-tier from tier-row
+        } else if (this.id === 'ai-items') {
+            newTierId = null; // Represents unranked pool
         }
-        // else: dropped somewhere unexpected? Keep as unranked or log error.
-
-        // Find the source tier
-        if (originalParent.classList.contains('tier-items')) {
-            const sourceTierRow = originalParent.closest('.tier-row');
-            sourceTierId = sourceTierRow ? sourceTierRow.getAttribute('data-tier-id') : null;
+        
+        // Determine source tier ID based on original parent
+        if (originalDropParent && originalDropParent.classList.contains('tier-items')) {
+            const sourceTierRow = originalDropParent.closest('.tier-row');
+            sourceTierId = sourceTierRow ? sourceTierRow.getAttribute('data-tier') : null; // Use data-tier
         }
 
-        updateStateAfterDrop(draggedItem.getAttribute('data-id'), newTierId, sourceTierId);
-        
-        // Clean up reference for safety, handleDragEnd might not fire reliably in all cases
-        // draggedItem = null; 
-        // originalParent = null;
-        
+        updateStateAfterDrop(itemId, newTierId, sourceTierId);
+            
         return false;
     }
     

@@ -28,6 +28,11 @@
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); /* Darker shadow */
     position: relative; /* Needed for close button positioning */
     box-sizing: border-box; /* Added for safety */
+    /* Add scrolling behavior */
+    max-height: 85vh; /* Limit height to 85% of viewport */
+    overflow-y: auto; /* Enable vertical scrollbar if needed */
+    display: flex; /* Use flex for internal layout */
+    flex-direction: column; /* Stack children vertically */
 }
 
 .edit-modal-content h2 {
@@ -182,6 +187,36 @@
     text-overflow: ellipsis;
 }
 
+/* Read-only Icon Display */
+.read-only-icon-block .value-container {
+    /* Adjust padding or min-height if needed */
+    text-align: center; /* Center placeholder text */
+}
+.read-only-icon-display {
+    max-width: 100%; /* Don't exceed container */
+    max-height: 50px; /* Limit height */
+    object-fit: contain; /* Maintain aspect ratio */
+    display: block; /* Correct centering/layout */
+    margin: 0 auto; /* Center block element */
+}
+
+/* Read-only Website Link */
+#readOnlyPairToolWebsite .value-container span { /* Hide the default span */
+    display: none;
+}
+.read-only-website-link {
+    color: var(--accent-color-2); /* Link color */
+    text-decoration: none;
+    display: block; /* Needed for ellipsis */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.read-only-website-link:hover {
+    text-decoration: underline;
+}
+
 /* Add space below each label/value pair */
 .read-only-pair {
     margin-bottom: 15px; /* Adjust as needed */
@@ -332,53 +367,73 @@
 /* Styling for the new form rows */
 .form-row {
     display: flex;
-    gap: 20px; /* Adjust gap between columns */
+    gap: 20px; 
     margin-bottom: 20px;
 }
-
 .form-row .form-field-group {
-    flex: 1; /* Make columns equal width */
-    margin-bottom: 0; /* Remove bottom margin from individual groups */
+    margin-bottom: 0; 
+}
+/* Keep col-50 for Icon/Website row */
+.col-50 {
+    flex-basis: 50%;
 }
 
-/* Adjust input width within columns if needed */
-/* .form-row .form-field-group input,
-   .form-row .form-field-group textarea {
-       width: 100%;
-   } */
-
-/* Styling for read-only rows */
-.read-only-row {
-    display: flex;
-    gap: 20px; /* Re-add gap */
-    margin-bottom: 15px; /* Space between rows */
-    width: 100%; /* Ensure row takes full width */
-}
-
+/* Read Only Row for Icon/Website (Now only used for this pair if kept) */
+/* Keep styles for .read-only-row .col-50 if Icon/Website remain side-by-side */
 .read-only-row .read-only-pair {
-    margin-bottom: 0; /* Remove bottom margin from individual pairs */
+    /* Keep base styles */
+    margin-bottom: 0; 
     box-sizing: border-box;
     overflow: hidden;
     flex-grow: 0;
     flex-shrink: 0;
 }
+.read-only-row .col-50 {
+    flex-basis: 50%;
+}
+/* Remove full-width rule as structure changed */
+/* .read-only-row .full-width {
+    flex-basis: 100%;
+} */
 
-/* Ensure empty placeholder takes up space */
-.read-only-row .read-only-pair:empty {
-    /* Optionally add styles to visualize or keep space */
-    border: 1px solid transparent; /* Make it take up space but be invisible */
+/* New Read-Only Top Section Layout */
+.read-only-top-section {
+    display: flex;
+    gap: 20px; /* Space between Name and Meta blocks */
+    margin-bottom: 20px; /* Space below top section */
+}
+
+.read-only-name-block {
+    flex: 1; /* Takes up most space */
+    /* Contains #readOnlyPairEN and #readOnlyPairZH */
+}
+
+.read-only-meta-block {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Space between Icon, Date, Website */
+    flex-basis: 200px; /* Adjust width for the right column */
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+.read-only-meta-block .read-only-pair {
+    margin-bottom: 0; /* Remove extra margin within this block */
+}
+
+/* Style for the read-only description container */
+.read-only-description-container {
+    margin-top: 15px; /* Space above description */
 }
 
 /* Column Width Classes */
+/*
 .col-70 {
     flex-basis: 70%;
 }
 .col-30 {
     flex-basis: 30%;
 }
-.col-50 {
-    flex-basis: 50%;
-}
+*/
 
 /* Date Input Styling */
 .date-inputs {
@@ -439,3 +494,482 @@
     margin: 0;
     padding: 0;
 }
+
+/* --- NEW Styles for Modal Row Layout --- */
+.modal-row {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping if needed, though less likely with defined widths */
+    gap: 20px; /* Consistent gap between columns */
+    margin-bottom: 20px; /* Consistent spacing between rows */
+    align-items: flex-start; /* Align items to the top by default */
+}
+
+/* Adjust alignment for the top row specifically */
+.modal-row.top-row {
+    align-items: center; /* Vertically center items in the top row (lang switch and icon) */
+}
+
+/* Remove margin from direct children if gap is used */
+.modal-row > .form-field-group,
+.modal-row > .language-switch,
+.modal-row > .read-only-pair,
+.modal-row > .features-section-container,
+.modal-row > .description-container,
+.modal-row > .read-only-icon-block, /* Target icon block directly */
+.modal-row > .icon-input-group      /* Target icon input group */
+ {
+    margin-bottom: 0; /* Remove individual bottom margins as row has margin */
+}
+
+/* Column Width Definitions */
+.modal-row > .col-80 {
+    flex-basis: calc(80% - 10px); /* Adjust for half the gap */
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.modal-row > .col-20 {
+    flex-basis: calc(20% - 10px); /* Adjust for half the gap */
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.modal-row > .full-width {
+    flex-basis: 100%;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+/* Specific adjustments for Row 1 (Language Switch + Icon) */
+.modal-row.top-row > .language-switch {
+    flex-grow: 1; /* Allow language switch to take available space */
+    flex-shrink: 1;
+}
+
+.modal-row.top-row > .read-only-icon-block,
+.modal-row.top-row > .icon-input-group {
+    flex-basis: 150px; /* Give the icon a fixed basis, adjust as needed */
+    flex-grow: 0;
+    flex-shrink: 0;
+    /* Ensure text align doesn't affect block positioning */
+    text-align: left; /* Reset text align if inherited */
+}
+/* Ensure the value container inside the read-only icon block behaves */
+.modal-row.top-row > .read-only-icon-block .value-container {
+     text-align: center; /* Center placeholder text/icon *within* its container */
+     padding: 5px; /* Adjust padding if needed */
+     display: flex; /* Use flex to center content vertically and horizontally */
+     justify-content: center;
+     align-items: center;
+     min-height: 50px; /* Ensure a minimum height */
+     box-sizing: border-box;
+}
+
+/* Override text-align for the icon image itself if needed */
+.modal-row.top-row .read-only-icon-display {
+    margin: 0 auto; /* Keep centering the image */
+}
+
+/* --- Features Section --- */
+.features-section-container {
+    margin-top: 25px; 
+    padding-top: 15px;
+    border-top: 1px solid var(--tertiary-bg); /* Separator */
+}
+
+.features-section-container h3 {
+    color: var(--secondary-text); /* Match labels */
+    font-size: 1.1em;
+    margin-bottom: 15px;
+}
+
+.features-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive columns */
+    gap: 15px 20px; /* Reduced row gap slightly */
+}
+
+.feature-row {
+    /* margin-bottom: 15px; */ /* Removed default margin */
+}
+
+.feature-row.read-only {
+    margin-bottom: 8px; /* Make read-only rows more compact */
+}
+
+.feature-row label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: var(--primary-text);
+}
+
+/* Edit Mode Slider Styles */
+.feature-slider-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.feature-slider-container input[type="range"] {
+    flex-grow: 1;
+    cursor: pointer;
+    /* Basic range slider reset/styling */
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    background: var(--tertiary-bg); /* Track color */
+    border-radius: 4px;
+    outline: none;
+}
+
+.feature-slider-container input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: var(--accent-color-2); /* Thumb color */
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.feature-slider-container input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: var(--accent-color-2);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+.feature-score-display {
+    font-weight: bold;
+    color: var(--accent-color-1);
+    min-width: 30px; /* Ensure space for 100 */
+    text-align: right;
+}
+
+/* Read Only Progress Bar Styles (Structure 3 - Compact) */
+.feature-row.read-only .feature-name {
+    color: var(--primary-text); 
+    font-size: 0.8rem; /* Slightly smaller */
+    line-height: 1.2;
+    font-weight: normal; /* Less emphasis */
+    margin-bottom: 3px; /* Reduced space */
+}
+
+/* Remove styles for .feature-score and the flex container */
+/*
+.feature-row.read-only .feature-score {
+    color: var(--secondary-text); 
+    font-size: 0.8rem;
+    line-height: 1.2;
+}
+.feature-row.read-only .flex.items-end {
+     margin-bottom: 4px; 
+}
+*/
+
+.feature-row.read-only .progress {
+    width: 100%; 
+    height: 6px; /* Make bar thinner */
+    background-color: var(--tertiary-bg); 
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.feature-row.read-only .progress-bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease-in-out;
+    /* Galaxy Gradient */
+    background: linear-gradient(90deg, 
+        var(--accent-color-1) 0%, 
+        var(--accent-color-2) 50%, 
+        #a855f7 /* Purple */ 100%
+    );
+}
+
+/* Remove styles for the old structure */
+/* 
+.feature-row.read-only .progress-label {
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: var(--secondary-text); 
+    line-height: 1;
+    margin-bottom: 2px; 
+    display: inline-block; 
+    position: relative; 
+    transition: margin-left 0.3s ease-in-out; 
+    white-space: nowrap; 
+    max-width: calc(100% - 10px); 
+}
+*/
+
+/* Remove old progress bar styles (Commented out previously) */
+/* 
+.feature-progress-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 5px; 
+}
+.feature-progress-bar {
+    flex-grow: 1;
+    height: 10px;
+    background-color: var(--tertiary-bg); 
+    border-radius: 5px;
+    overflow: hidden; 
+    position: relative; 
+}
+.feature-progress-bar-inner {
+    height: 100%;
+    background-color: var(--accent-color-2); 
+    border-radius: 5px;
+    transition: width 0.3s ease-in-out;
+}
+.feature-score-display-read {
+    font-weight: bold;
+    color: var(--secondary-text);
+    min-width: 35px; 
+    text-align: right;
+}
+*/
+
+.markdown-preview pre code {
+    background-color: transparent; /* Code inside pre shouldn't have its own bg */
+}
+
+/* Divider Style */
+.modal-divider {
+    border: none;
+    height: 1px;
+    background-color: var(--tertiary-bg); /* Use theme color */
+    margin: 25px 0; /* Add vertical spacing */
+}
+
+/* --- Features Section --- */
+/* Style the container for feature rows if added */
+.feature-rows-container {
+    width: 100%; /* Ensure it takes full width within its row */
+    margin-top: 15px; /* Space below the Add button */
+}
+
+/* Style the Add Feature Button */
+.add-feature-btn {
+    background-color: var(--accent-color); /* Use accent color */
+    color: var(--modal-bg-color); /* Contrast text */
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s ease;
+    margin-bottom: 10px; /* Space below button */
+}
+.add-feature-btn:hover {
+    background-color: var(--accent-color-darker); /* Darker on hover */
+}
+
+/* Individual Feature Row Styling */
+.feature-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--modal-border-color); /* Subtle separator */
+}
+.feature-row:last-child {
+    margin-bottom: 0;
+    border-bottom: none;
+}
+
+/* Container for remove button and label */
+.feature-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Space between remove button and label */
+    flex-basis: 40%; /* Allocate space for controls */
+    flex-shrink: 0;
+}
+
+/* Style the Remove Feature Button */
+.remove-feature-btn {
+    background-color: transparent; /* No background */
+    color: var(--danger-color);    /* Red color */
+    border: none;                 /* No border */
+    padding: 0 5px;             /* Adjust padding slightly */
+    font-weight: bold;
+    font-size: 1.2em;           /* Make minus sign slightly larger */
+    cursor: pointer;
+    transition: color 0.2s;
+    /* Remove fixed width/height/border-radius */
+    margin-right: 5px; /* Add some space to the right */
+}
+.remove-feature-btn:hover {
+    color: #ff8c8c; /* Lighter red on hover */
+    background-color: transparent; /* Ensure no background on hover */
+}
+
+/* Label styling */
+.feature-row label {
+    margin: 0;
+    font-weight: normal;
+    flex-grow: 1; /* Allow label to take remaining space in controls */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Slider container */
+.feature-slider-container {
+    flex-basis: 55%; /* Allocate space for slider and score */
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between slider and score */
+}
+
+.feature-slider {
+    flex-grow: 1; /* Allow slider to take most space */
+    height: 8px;
+    cursor: pointer;
+}
+
+.feature-score-display {
+    font-size: 0.9em;
+    min-width: 25px; /* Ensure space for 3 digits */
+    text-align: right;
+}
+
+/* Styling for Read-Only feature row (if different structure needed) */
+.feature-row.read-only .w-full {
+     width: 100%; /* Ensure full width for read-only */
+}
+.feature-row.read-only .progress {
+     height: 8px; /* Match slider height */
+     background-color: var(--modal-border-color); /* Background for progress */
+}
+.feature-row.read-only .progress-bar {
+     background-color: var(--accent-color);
+}
+.feature-row.read-only {
+     border-bottom: none; /* No border for read-only list items */
+     margin-bottom: 10px;
+     padding-bottom: 0;
+}
+
+/* --- End Features Section --- */
+
+/* --- NEW: Feature Selection Modal Styles --- */
+#featureSelectionModal {
+    z-index: 1060; /* Higher than the default modal z-index (often ~1050) */
+}
+
+#featureSelectionModal .modal-content {
+    max-height: 70vh; /* Allow space for longer lists */
+    width: 40%; /* Make it a bit narrower */
+    max-width: 500px;
+}
+
+.features-selection-list {
+    max-height: 40vh; /* Limit list height */
+    overflow-y: auto; /* Allow scrolling for the list */
+    border: 1px solid var(--tertiary-bg);
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 20px; /* Space before actions */
+    background-color: var(--primary-bg);
+}
+
+.feature-select-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--tertiary-bg);
+}
+
+.feature-select-item:last-child {
+    border-bottom: none;
+}
+
+.feature-select-item input[type="checkbox"] {
+    cursor: pointer;
+    width: 18px; /* Slightly larger checkbox */
+    height: 18px;
+}
+
+.feature-select-item label {
+    margin: 0;
+    font-weight: normal;
+    color: var(--primary-text);
+    cursor: pointer;
+    flex-grow: 1;
+}
+/* --- End Feature Selection Modal Styles --- */
+
+/* === Feature Section Specific === */
+
+/* NEW: Header for title and add button */
+.features-header {
+    display: flex;
+    justify-content: space-between; /* Title left, button right */
+    align-items: center; /* Vertically align */
+    margin-bottom: 1rem; /* Space below header */
+}
+
+.features-header h3 {
+    margin-bottom: 0; /* Remove default margin from h3 */
+    border-bottom: none; /* Remove default border */
+}
+
+.features-section {
+    display: flex;
+}
+
+/* Ensure sliders take up appropriate space */
+.feature-row input[type="range"] {
+    flex-grow: 1;
+}
+
+/* === Read-Only Feature Bars === */
+
+.features-section.read-only {
+    display: grid; /* Use grid for alignment */
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Adjust minmax */
+    gap: 10px 20px; /* Adjust gap */
+    padding-top: 10px;
+}
+
+.read-only-feature-item {
+    /* No flex needed now */
+    text-align: left; /* Align label left */
+}
+
+.read-only-feature-label {
+    display: block; /* Make label block */
+    font-size: 0.9em; /* Slightly larger label */
+    color: var(--primary-text); /* Use primary text color */
+    margin-bottom: 5px; /* Space between label and bar */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.read-only-feature-bar-container {
+    width: 100%;
+    height: 8px; /* Thinner bar */
+    background-color: var(--tertiary-bg); /* Darker background track */
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.read-only-feature-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-color-1), var(--accent-color-2), var(--accent-color-3)); /* Keep gradient */
+    border-radius: 4px;
+    transition: width 0.3s ease-out;
+}
+
+/* --- End Read-Only Feature Bars --- */

@@ -9,6 +9,7 @@ import { renderAIPool, renderTiers as renderUITiers, setupModals, setupAddCustom
 import { initDragAndDrop } from './dragDrop.js';
 import { saveState, loadState, clearState, exportAsImage, generateShareableLink, loadFromShareableLink } from './storage.js';
 import { loadTiers, getLoadedTiers, handleAddTier as importedHandleAddTier, saveTiersToFile } from './tierManagement.js'; 
+import { loadFeatures } from './featureManagement.js';
 import { setupEditModalListeners, getAllAIItems, showEditAIModal } from './aiToolManagement.js';
 import { exportStateToCSV } from './exportManager.js'; // Import the updated export function
 
@@ -23,15 +24,18 @@ const state = {
 // Initialize the application
 async function init() {
     try {
-        // Load AI items from CSV
-        let aiItems;
-        try {
-            aiItems = await getAllAIItems();
-        } catch (error) {
-            console.error('Error loading AI items from CSV:', error);
-            // Fallback to empty array if CSV loading fails
-            aiItems = [];
-        }
+        // Load essential data concurrently
+        await Promise.all([
+            getAllAIItems(), // Load AI tools data
+            loadTiers(),     // Load tier definitions
+            loadFeatures()   // Load feature definitions
+        ]);
+
+        // Get loaded data
+        let aiItems = await getAllAIItems(); // Already loaded, just get the array
+        state.tiers = getLoadedTiers();
+        // Features are loaded into featureManagement module, no need to store in state here
+        console.log("[main.js] AI Items, Tiers, and Features loaded.");
 
         // Try to load saved state from localStorage
         const savedState = loadState();
@@ -45,17 +49,6 @@ async function init() {
         if (sharedState) {
             // Use the shared state instead
             mergeState(sharedState);
-        }
-
-        // Load tiers asynchronously
-        try {
-            await loadTiers(); // Calls the exported async function
-            state.tiers = getLoadedTiers(); // Get the tiers loaded by the module
-            console.log("[main.js] Tiers loaded:", state.tiers);
-        } catch (error) {
-            console.error("[main.js] Error loading tiers:", error);
-            // Handle tier loading failure - maybe load defaults or show error state
-            state.tiers = []; // Ensure it's an empty array on failure
         }
 
         // Set up modals (including Add Tier modal logic which needs the callback)
@@ -229,18 +222,28 @@ function setupEventListeners() {
 }
 
 // Add a custom AI item
-function addCustomAI(newAI) {
-    // Add to state
-    state.customAIItems.push(newAI);
+function addCustomAI(addedItem) { // The callback now receives the full item with ID
+    console.log("[main.js addCustomAI] Callback received with:", addedItem);
     
-    // Update UI
+    if (!addedItem || !addedItem.id) {
+        console.error("[main.js addCustomAI] Callback received invalid item data.", addedItem);
+        return; // Don't proceed if we didn't get a valid item back
+    }
+
+    // Update UI: Add the new item visually to the unranked pool
     const aiPoolContainer = document.getElementById('ai-items');
     if (aiPoolContainer) {
-        renderAIItem(newAI, aiPoolContainer);
+        const newItemElement = renderAIItem(addedItem); // Use the returned item directly
+        if (newItemElement) {
+            aiPoolContainer.appendChild(newItemElement);
+            // TODO: Make the new item draggable (needs access to DragDrop instance/refresh)
+            console.log(`[main.js addCustomAI] New item ${addedItem.id} added to pool. Needs DragDrop init.`);
+        } else {
+            console.error("[main.js addCustomAI] Could not create DOM element for new item:", addedItem);
+        }
+    } else {
+        console.error("[main.js addCustomAI] AI Pool container not found.");
     }
-    
-    // Save state
-    handleStateChange(state);
 }
 
 // Save current state
@@ -355,96 +358,68 @@ function updateSingleItemDisplay(updatedData) {
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("[main.js] DOM fully loaded and parsed");
 
-    // Initialize tier management (loads tiers and items)
-    // await initializeTiers();
+    // Initialize language manager first
+    // await initializeLanguage(); // Assuming languageManager handles its own init
 
-    // Initialize drag and drop functionality AFTER tiers and items are rendered
-    // initializeDragAndDrop();
-
-    // Setup button listeners
-    // setupButtonListeners();
-
-    // Add language change event listener to update tier names
+    // Add language change event listener early to catch initial language set
     document.documentElement.addEventListener('languageChanged', (event) => {
         console.log("[main.js] Language changed to:", event.detail.lang);
-        
-        // Update tier labels based on current language
         const currentLang = event.detail.lang;
         
-        // First, update tier labels in the tier list
+        // Update tier labels
         const tierRows = document.querySelectorAll('.tier-row');
         tierRows.forEach(row => {
             const tierId = row.getAttribute('data-tier');
-            if (!tierId) return;
-            
-            // Find the tier in the loaded tiers
             const tier = state.tiers.find(t => t.id === tierId);
             if (!tier) return;
-            
-            // Find the label element within this tier row
             const labelElement = row.querySelector('.tier-label');
             if (labelElement) {
-                // Update the label text based on current language
-                const tierName = currentLang === 'en' ? tier.name_en : tier.name_zh;
-                if (tierName) {
-                    labelElement.textContent = tierName;
-                    console.log(`[main.js] Updated tier ${tierId} label to: ${tierName}`);
-                }
+                labelElement.textContent = currentLang === 'en' ? tier.name_en : tier.name_zh;
             }
+            // Also update hidden input if it exists (for edit mode in tiers)
+            const inputElement = row.querySelector('.tier-name-input');
+             if (inputElement) {
+                 inputElement.value = currentLang === 'en' ? tier.name_en : tier.name_zh;
+             }
         });
         
-        // Also update any tier labels that might be in the tier management UI
-        const managementLabels = document.querySelectorAll('#tier-list-container .tier-label span');
-        managementLabels.forEach(label => {
-            const tierRow = label.closest('[data-tier]');
-            if (!tierRow) return;
-            
-            const tierId = tierRow.getAttribute('data-tier');
-            const tier = state.tiers.find(t => t.id === tierId);
-            if (tier) {
-                label.textContent = currentLang === 'en' ? tier.name_en : tier.name_zh;
-            }
-        });
-        
-        // Update AI tool labels based on current language
+        // Update AI tool labels
         const aiItems = document.querySelectorAll('.ai-item');
         aiItems.forEach(item => {
             const nameEn = item.getAttribute('data-name-en');
             const nameZh = item.getAttribute('data-name-zh');
-            
-            if (nameEn && nameZh) {
-                // Find the name span element (the second child)
-                const nameSpan = item.querySelector('span');
-                if (nameSpan) {
-                    // Update the displayed text based on current language
-                    nameSpan.textContent = currentLang === 'en' ? nameEn : nameZh;
-                    console.log(`[main.js] Updated AI item label to: ${nameSpan.textContent}`);
-                }
+            const nameSpan = item.querySelector('span');
+            const img = item.querySelector('img');
+            if (nameEn && nameZh && nameSpan) {
+                const newName = currentLang === 'en' ? nameEn : nameZh;
+                nameSpan.textContent = newName;
+                 if (img) {
+                    img.alt = `${newName} Logo`;
+                 }
             }
         });
-    });
+    }); // End languageChanged listener
 
-    // --- Add listener for Export CSV button ---
+    // --- Run Main Initialization --- 
+    await init(); // Run the main init function that loads data and sets up UI
+
+    // --- Setup Export CSV Button Listener --- 
     const exportCsvButton = document.getElementById('export-csv-button');
     if (exportCsvButton) {
-        // Make the event listener async to handle the await for exportStateToCSV
         exportCsvButton.addEventListener('click', async () => {
             console.log("[main.js] Export button clicked, calling exportStateToCSV...");
             try {
-                await exportStateToCSV(); // Await the async export function
+                await exportStateToCSV();
                 console.log("[main.js] exportStateToCSV completed.");
             } catch (error) {
                 console.error("[main.js] Error during exportStateToCSV call:", error);
-                // Optionally show a user-friendly error message here as well
             }
-        });
+        }); // End click listener callback
         console.log("[main.js] Export CSV button listener attached.");
     } else {
         console.warn("[main.js] Export CSV button (#export-csv-button) not found.");
-    }
-    // --- End Export CSV button listener ---
+    } // End if exportCsvButton
 
-    init();
+    console.log("[main.js] Initialization sequence complete."); // Changed log message
 
-    console.log("[main.js] Initialization complete.");
-});
+}); // End DOMContentLoaded listener
