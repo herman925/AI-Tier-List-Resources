@@ -23,10 +23,11 @@
     background: var(--secondary-bg); /* Match section background */
     color: var(--primary-text); /* Use primary text color */
     border-radius: 12px;
-    padding: 30px;
+    padding: 30px; /* This should be even */
     border: 1px solid var(--tertiary-bg); /* Match section border */
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); /* Darker shadow */
     position: relative; /* Needed for close button positioning */
+    box-sizing: border-box; /* Added for safety */
 }
 
 .edit-modal-content h2 {
@@ -167,13 +168,25 @@
     background-color: var(--primary-bg);
     border: 1px dashed var(--tertiary-bg); /* Use theme variable and style */
     border-radius: 0.25rem;
-    padding: 0.5rem 0.75rem;
+    padding: 10px; /* Made symmetrical */
     margin-top: 3px; /* Small space between label and its value box */
+    box-sizing: border-box; /* Added */
+}
+
+/* Target specific spans within URL value containers for no-wrap/ellipsis */
+#readOnlyPairIcon .value-container span,
+#readOnlyPairToolWebsite .value-container span {
+    display: block; /* Important for ellipsis */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Add space below each label/value pair */
 .read-only-pair {
     margin-bottom: 15px; /* Adjust as needed */
+    box-sizing: border-box; /* Added */
+    overflow: hidden; /* Added to contain children */
 }
 
 /* Language-specific visibility rules */
@@ -315,3 +328,114 @@
 /* .modal-actions .btn-edit:hover { */
 /*    background-color: #ffdd99; */ /* Lighter gold */
 /* } */
+
+/* Styling for the new form rows */
+.form-row {
+    display: flex;
+    gap: 20px; /* Adjust gap between columns */
+    margin-bottom: 20px;
+}
+
+.form-row .form-field-group {
+    flex: 1; /* Make columns equal width */
+    margin-bottom: 0; /* Remove bottom margin from individual groups */
+}
+
+/* Adjust input width within columns if needed */
+/* .form-row .form-field-group input,
+   .form-row .form-field-group textarea {
+       width: 100%;
+   } */
+
+/* Styling for read-only rows */
+.read-only-row {
+    display: flex;
+    gap: 20px; /* Re-add gap */
+    margin-bottom: 15px; /* Space between rows */
+    width: 100%; /* Ensure row takes full width */
+}
+
+.read-only-row .read-only-pair {
+    margin-bottom: 0; /* Remove bottom margin from individual pairs */
+    box-sizing: border-box;
+    overflow: hidden;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+/* Ensure empty placeholder takes up space */
+.read-only-row .read-only-pair:empty {
+    /* Optionally add styles to visualize or keep space */
+    border: 1px solid transparent; /* Make it take up space but be invisible */
+}
+
+/* Column Width Classes */
+.col-70 {
+    flex-basis: 70%;
+}
+.col-30 {
+    flex-basis: 30%;
+}
+.col-50 {
+    flex-basis: 50%;
+}
+
+/* Date Input Styling */
+.date-inputs {
+    display: flex;
+    gap: 10px;
+}
+
+.date-inputs select,
+.date-inputs input[type="number"] {
+    /* Inherit base input styles */
+    flex: 1; /* Distribute space */
+    padding: 12px;
+    border: 1px solid var(--tertiary-bg);
+    background-color: var(--primary-bg);
+    color: var(--primary-text);
+    border-radius: 6px;
+    box-sizing: border-box; 
+    font-family: var(--font-main);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    margin-bottom: 0; /* Remove bottom margin from base style */
+}
+
+.date-inputs select {
+    /* Select specific styles if needed */
+    cursor: pointer;
+}
+
+.date-inputs input[type="number"] {
+    /* Number input specific styles if needed */
+    width: auto; /* Adjust width if flex:1 is too much */
+}
+
+.date-inputs select:focus,
+.date-inputs input[type="number"]:focus {
+    border-color: var(--accent-color-2);
+    outline: none;
+    box-shadow: 0 0 8px rgba(102, 204, 255, 0.4);
+}
+
+/* Hide number spinner arrows (optional, browser support varies) */
+.date-inputs input[type=number]::-webkit-inner-spin-button, 
+.date-inputs input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+.date-inputs input[type=number] {
+  -moz-appearance: textfield; /* Firefox */
+}
+
+/* Add this rule */
+#editAIForm {
+    margin: 0;
+    padding: 0;
+}
+
+/* Add this rule */
+.read-only-section {
+    margin: 0;
+    padding: 0;
+}
