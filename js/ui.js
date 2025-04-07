@@ -323,6 +323,9 @@ export function setupAddCustomAI(aiToolManager) {
     const nameENInput = document.getElementById('addItemNameEN');
     const nameZHInput = document.getElementById('addItemNameZH');
     const iconInput = document.getElementById('addItemIcon');
+    const toolWebsiteInput = document.getElementById('addItemToolWebsite');
+    const releaseMonthInput = document.getElementById('addItemReleaseMonth');
+    const releaseYearInput = document.getElementById('addItemReleaseYear');
     const descENTextarea = document.getElementById('addItemDescriptionEN');
     const descZHTextarea = document.getElementById('addItemDescriptionZH');
     const markdownPreview = document.getElementById('addMarkdownPreview'); 
@@ -341,6 +344,9 @@ export function setupAddCustomAI(aiToolManager) {
     console.log(`[setupAddCustomAI] nameENInput: ${!!nameENInput}`);
     console.log(`[setupAddCustomAI] nameZHInput: ${!!nameZHInput}`);
     console.log(`[setupAddCustomAI] iconInput: ${!!iconInput}`);
+    console.log(`[setupAddCustomAI] toolWebsiteInput: ${!!toolWebsiteInput}`);
+    console.log(`[setupAddCustomAI] releaseMonthInput: ${!!releaseMonthInput}`);
+    console.log(`[setupAddCustomAI] releaseYearInput: ${!!releaseYearInput}`);
     console.log(`[setupAddCustomAI] descENTextarea: ${!!descENTextarea}`);
     console.log(`[setupAddCustomAI] descZHTextarea: ${!!descZHTextarea}`);
     console.log(`[setupAddCustomAI] markdownPreview: ${!!markdownPreview}`);
@@ -348,8 +354,15 @@ export function setupAddCustomAI(aiToolManager) {
 
     if (!modal || !openModalBtn || !closeModalBtn || !form || !langSwitchEN || !langSwitchZH || 
         !nameENContainer || !nameZHContainer || !descENContainer || !descZHContainer || 
-        !nameENInput || !nameZHInput || !iconInput || !descENTextarea || !descZHTextarea || !markdownPreview) {
+        !nameENInput || !nameZHInput || !iconInput || !toolWebsiteInput || !releaseMonthInput ||
+        !releaseYearInput || !descENTextarea || !descZHTextarea || !markdownPreview) {
         console.error("Add Custom AI Modal: One or more required elements not found. Aborting setup.");
+        // Log missing elements for detailed debugging
+        console.log({modal, openModalBtn, closeModalBtn, form, langSwitchEN, langSwitchZH,
+                     nameENContainer, nameZHContainer, descENContainer, descZHContainer,
+                     nameENInput, nameZHInput, iconInput, toolWebsiteInput,
+                     releaseMonthInput, releaseYearInput, // New Date
+                     descENTextarea, descZHTextarea, markdownPreview});
         return; 
     }
 
@@ -496,17 +509,32 @@ export function setupAddCustomAI(aiToolManager) {
     // Form submission listener
     form.addEventListener('submit', (event) => {
         event.preventDefault();
+
+        // Combine date fields
+        const month = releaseMonthInput.value;
+        const year = releaseYearInput.value;
+        let releaseDate = '';
+        if (year && month) {
+            releaseDate = `${year}-${month}`;
+        } else if (year) {
+            // Allow year only? Or require both? For now, only set if both present.
+            // releaseDate = `${year}-01`; // Default to Jan if only year?
+             console.warn('Release month or year missing, not setting releaseDate');
+        }
+
         const newAI = {
             id: `custom_${Date.now()}`, // Simple unique ID
             name_en: nameENInput.value,
             name_zh: nameZHInput.value,
-            icon: iconInput.value || settings.defaultIcon, // Use default if empty
+            icon: iconInput.value || settings.defaultIconUrl, // Use default if empty
+            toolWebsite: toolWebsiteInput.value,
+            releaseDate: releaseDate, // Combined YYYY-MM or empty
             description_en: descENTextarea.value,
             description_zh: descZHTextarea.value,
             tier_id: '', // New items start unranked
             isCustom: true
         };
-        
+
         console.log('Adding new custom AI:', newAI);
         addAIItem(newAI).then(success => {
             if (success) {
