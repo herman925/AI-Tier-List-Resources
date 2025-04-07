@@ -83,7 +83,7 @@ async function init() {
         setupEventListeners();
         
         // Setup edit modal listeners separately
-        setupEditModalListeners(renderUI); 
+        setupEditModalListeners(updateSingleItemDisplay); 
         
     } catch (error) {
         console.error('Error initializing application:', error);
@@ -313,6 +313,42 @@ function handleStateChange(newState) {
     
     // Save state to localStorage
     saveState(state);
+}
+
+// NEW: Function to update a single AI item's display in the UI
+function updateSingleItemDisplay(updatedData) {
+    console.log('[main.js updateSingleItemDisplay] Updating UI for item:', updatedData.id, updatedData);
+    const itemElement = document.querySelector(`.ai-item[data-id="${updatedData.id}"]`);
+
+    if (!itemElement) {
+        console.warn(`[main.js updateSingleItemDisplay] Could not find item element with ID: ${updatedData.id}`);
+        return;
+    }
+
+    // Update data attributes (important for language switching etc.)
+    if (updatedData.name_en) itemElement.dataset.nameEn = updatedData.name_en;
+    if (updatedData.name_zh) itemElement.dataset.nameZh = updatedData.name_zh;
+    // Add other data attributes if needed (e.g., descriptions for tooltips, though not currently used)
+
+    // Update visual elements
+    const img = itemElement.querySelector('img');
+    if (img && updatedData.icon !== undefined) { // Check if icon was part of update
+        img.src = updatedData.icon || settings.defaultIconUrl; // Use default if empty
+    }
+
+    const nameSpan = itemElement.querySelector('span');
+    if (nameSpan) {
+        const currentLang = document.documentElement.lang || 'zh'; // Get current language
+        const name = currentLang === 'en' ? updatedData.name_en : updatedData.name_zh;
+        if (name) { // Ensure name exists before setting
+             nameSpan.textContent = name;
+        }
+        // Update alt text on image too
+        if (img && name) {
+            img.alt = `${name} Logo`;
+        }
+    }
+    console.log(`[main.js updateSingleItemDisplay] UI updated for ${updatedData.id}`);
 }
 
 // Initialize the application when the DOM is fully loaded
