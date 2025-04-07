@@ -314,5 +314,16 @@
     },
     "id": "AI018",
     "tier_id": ""
+  },
+  {
+    "name_en": "Zemith",
+    "name_zh": "Zemith",
+    "icon": "https://www.zemith.com/favicon.ico",
+    "releaseDate": "2025-01",
+    "toolWebsite": "https://www.zemith.com/",
+    "description_en": "",
+    "description_zh": "",
+    "features": {}
   }
+
 ]
