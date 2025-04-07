@@ -323,7 +323,240 @@
     "toolWebsite": "https://www.zemith.com/",
     "description_en": "",
     "description_zh": "",
-    "features": {}
+    "features": {
+      "Feat001": 85
+    },
+    "id": "AI019",
+    "tier_id": "C"
+  },
+  {
+    "name_en": "Suno AI",
+    "name_zh": "Suno AI",
+    "icon": "https://example.com/suno_ai_icon.png",
+    "releaseDate": "2024-09",
+    "toolWebsite": "https://suno.ai/",
+    "description_en": "Suno AI is a cutting-edge language model designed for conversational AI applications.",
+    "description_zh": "Suno AI 是为对话式 AI 应用而设计的尖端语言模型。",
+    "features": {
+      "Feat001": 85,
+      "Feat002": 80,
+      "Feat004": 95,
+      "Feat005": 90,
+      "Feat006": 85,
+      "Feat016": 100,
+      "Feat017": 90
+    },
+    "id": "AI020",
+    "tier_id": "B"
+  },
+  {
+    "name_en": "Udio",
+    "name_zh": "Udio",
+    "icon": "https://example.com/udio_icon.png",
+    "releaseDate": "2023-11",
+    "toolWebsite": "https://udio.com/",
+    "description_en": "Udio is an AI-powered audio editing tool for creators.",
+    "description_zh": "Udio 是为创作者提供的AI驱动的音频编辑工具。",
+    "features": {
+      "Feat001": 70,
+      "Feat002": 75,
+      "Feat003": 80,
+      "Feat004": 85,
+      "Feat005": 80,
+      "Feat006": 75,
+      "Feat015": 70,
+      "Feat017": 75
+    },
+    "id": "AI021",
+    "tier_id": "B"
+  },
+  {
+    "name_en": "Godmode",
+    "name_zh": "Godmode",
+    "icon": "https://example.com/godmode_icon.png",
+    "releaseDate": "2024-01",
+    "toolWebsite": "https://godmode.ai/",
+    "description_en": "Godmode is an AI platform for game development and AI integration.",
+    "description_zh": "Godmode 是游戏开发和AI集成的AI平台。",
+    "features": {
+      "Feat001": 90,
+      "Feat002": 85,
+      "Feat003": 95,
+      "Feat004": 90,
+      "Feat005": 95,
+      "Feat006": 90,
+      "Feat016": 100,
+      "Feat017": 95
+    },
+    "id": "AI022",
+    "tier_id": "G"
+  },
+  {
+    "name_en": "Hedy AI",
+    "name_zh": "Hedy AI",
+    "icon": "https://example.com/hedy_ai_icon.png",
+    "releaseDate": "2023-07",
+    "toolWebsite": "https://hedy.ai/",
+    "description_en": "Hedy AI is a conversational AI assistant for customer service.",
+    "description_zh": "Hedy AI 是为客户服务提供的对话式 AI 助手。",
+    "features": {
+      "Feat001": 80,
+      "Feat002": 75,
+      "Feat003": 85,
+      "Feat004": 80,
+      "Feat005": 85,
+      "Feat006": 80,
+      "Feat016": 100,
+      "Feat017": 85
+    },
+    "id": "AI023",
+    "tier_id": "S"
+  },
+  {
+    "name_en": "Gamma AI",
+    "name_zh": "Gamma AI",
+    "icon": "https://example.com/gamma_ai_icon.png",
+    "releaseDate": "2024-03",
+    "toolWebsite": "https://gamma.ai/",
+    "description_en": "Gamma AI is a machine learning platform for data analysis.",
+    "description_zh": "Gamma AI 是数据分析的机器学习平台。",
+    "features": {
+      "Feat001": 95,
+      "Feat002": 90,
+      "Feat003": 100,
+      "Feat004": 95,
+      "Feat005": 100,
+      "Feat006": 95,
+      "Feat016": 100,
+      "Feat017": 100
+    },
+    "id": "AI024",
+    "tier_id": "S"
+  },
+  {
+    "name_en": "Descript",
+    "name_zh": "Descript",
+    "icon": "https://example.com/descript_icon.png",
+    "releaseDate": "2023-05",
+    "toolWebsite": "https://descript.com/",
+    "description_en": "Descript is an AI-powered video editing tool for creators.",
+    "description_zh": "Descript 是为创作者提供的AI驱动的视频编辑工具。",
+    "features": {
+      "Feat001": 75,
+      "Feat002": 80,
+      "Feat003": 85,
+      "Feat004": 80,
+      "Feat005": 85,
+      "Feat006": 80,
+      "Feat015": 75,
+      "Feat017": 80
+    },
+    "id": "AI025",
+    "tier_id": "B"
+  },
+  {
+    "name_en": "Capcut",
+    "name_zh": "剪映",
+    "icon": "https://example.com/capcut_icon.png",
+    "releaseDate": "2022-09",
+    "toolWebsite": "https://capcut.com/",
+    "description_en": "Capcut is a video editing tool with AI-powered features.",
+    "description_zh": "剪映是一个具有AI驱动特性的视频编辑工具。",
+    "features": {
+      "Feat001": 80,
+      "Feat002": 85,
+      "Feat003": 90,
+      "Feat004": 85,
+      "Feat005": 90,
+      "Feat006": 85,
+      "Feat016": 100,
+      "Feat017": 90
+    },
+    "id": "AI026",
+    "tier_id": "B"
+  },
+  {
+    "name_en": "Sora",
+    "name_zh": "Sora",
+    "icon": "https://example.com/sora_icon.png",
+    "releaseDate": "2024-05",
+    "toolWebsite": "https://sora.ai/",
+    "description_en": "Sora is an AI platform for natural language processing.",
+    "description_zh": "Sora 是自然语言处理的AI平台。",
+    "features": {
+      "Feat001": 90,
+      "Feat002": 85,
+      "Feat003": 95,
+      "Feat004": 90,
+      "Feat005": 95,
+      "Feat006": 90,
+      "Feat016": 100,
+      "Feat017": 95
+    },
+    "id": "AI027",
+    "tier_id": "D"
+  },
+  {
+    "name_en": "Runway",
+    "name_zh": "Runway",
+    "icon": "https://example.com/runway_icon.png",
+    "releaseDate": "2023-03",
+    "toolWebsite": "https://runway.ai/",
+    "description_en": "Runway is an AI-powered video creation platform.",
+    "description_zh": "Runway 是一个AI驱动的视频创建平台。",
+    "features": {
+      "Feat001": 85,
+      "Feat002": 80,
+      "Feat003": 90,
+      "Feat004": 85,
+      "Feat005": 90,
+      "Feat006": 85,
+      "Feat016": 100,
+      "Feat017": 90
+    },
+    "id": "AI028",
+    "tier_id": "C"
+  },
+  {
+    "name_en": "ChatPDF",
+    "name_zh": "ChatPDF",
+    "icon": "https://example.com/chatpdf_icon.png",
+    "releaseDate": "2024-02",
+    "toolWebsite": "https://chatpdf.com/",
+    "description_en": "ChatPDF is an AI-powered PDF editor for document management.",
+    "description_zh": "ChatPDF 是文档管理的AI驱动的PDF编辑器。",
+    "features": {
+      "Feat001": 80,
+      "Feat002": 75,
+      "Feat003": 85,
+      "Feat004": 80,
+      "Feat005": 85,
+      "Feat006": 80,
+      "Feat015": 75,
+      "Feat017": 80
+    },
+    "id": "AI029",
+    "tier_id": "D"
+  },
+  {
+    "name_en": "AnythingLLM",
+    "name_zh": "AnythingLLM",
+    "icon": "https://example.com/anythingllm_icon.png",
+    "releaseDate": "2024-04",
+    "toolWebsite": "https://anythingllm.com/",
+    "description_en": "AnythingLLM is an AI-powered text-to-image generation tool.",
+    "description_zh": "AnythingLLM 是一个AI驱动的文本到图像生成工具。",
+    "features": {
+      "Feat001": 80,
+      "Feat002": 75,
+      "Feat003": 85,
+      "Feat004": 80,
+      "Feat005": 85,
+      "Feat006": 80,
+      "Feat016": 100,
+      "Feat017": 85
+    },
+    "id": "AI030",
+    "tier_id": "B"
   }
-
 ]
